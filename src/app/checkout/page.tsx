@@ -44,7 +44,9 @@ export default function CheckoutPage() {
   }, 0);
 
   const formatCurrency = (value: number): string => {
-    const formatted = new Intl.NumberFormat("es-CO").format(value);
+    // Si el valor viene sin miles (ej: 50) lo interpretamos como 50.000
+    const normalized = value < 1000 ? value * 1000 : value;
+    const formatted = new Intl.NumberFormat("es-CO").format(normalized);
     return `$${formatted}`;
   };
 

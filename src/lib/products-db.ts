@@ -34,7 +34,9 @@ type DbImage = {
 };
 
 function formatPrice(priceCents: number): string {
-  const formatted = new Intl.NumberFormat("es-CO").format(priceCents);
+  // Si el valor viene sin miles (ej: 50) lo interpretamos como 50.000
+  const normalized = priceCents < 1000 ? priceCents * 1000 : priceCents;
+  const formatted = new Intl.NumberFormat("es-CO").format(normalized);
   return `$${formatted}`;
 }
 
