@@ -26,15 +26,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
   const availableSizes = getAvailableSizes(product);
   const isOutOfStock = availableSizes.length === 0;
 
-  const numericPrice =
-    product && Number(product.price.replace(/[^0-9.-]+/g, "")) || 0;
-  const displayPrice =
-    !product || isNaN(numericPrice)
-      ? product?.price ?? ""
-      : `$${numericPrice.toLocaleString("es-CO", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        })}`;
+  const displayPrice = product?.price ?? "";
 
   const handleSizeClick = (e: MouseEvent<HTMLButtonElement>, size: string) => {
     e.preventDefault();
@@ -44,6 +36,9 @@ export default function ProductPageClient({ product }: { product: Product }) {
 
   const handleAddToCartClick = () => {
     if (!product || !selectedSize) return;
+    const stockForSize =
+      product.sizes?.find((s) => String(s.size ?? "") === String(selectedSize))?.stock ??
+      undefined;
     dispatch(
       addItem({
         slug: product.slug,
@@ -51,6 +46,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
         price: product.price,
         size: selectedSize,
         image: product.image,
+        maxQuantity: stockForSize,
       })
     );
     setCartOpen(true);
@@ -74,6 +70,11 @@ export default function ProductPageClient({ product }: { product: Product }) {
               <h1 className="font-headline text-[40px] md:text-[48px] leading-[1.1] text-primary max-w-md mb-12">
                 {product.name}
               </h1>
+              {product.description && (
+                <p className="font-body text-sm text-on-surface-variant leading-relaxed max-w-md mb-8">
+                  {product.description}
+                </p>
+              )}
               <div className="space-y-8 max-w-xs">
                 {product.features.map((feature) => (
                   <div key={feature.title} className="border-l border-primary/20 pl-6">

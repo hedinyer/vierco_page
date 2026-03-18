@@ -31,9 +31,11 @@ export type CheckoutResult =
   | { success: true; orderId: string }
   | { success: false; error: string };
 
+/** Parses price string to integer (COP). Handles "450000", "450.000", "$450.000". */
 function parsePriceToCents(priceStr: string): number {
-  const num = Number(priceStr.replace(/[^0-9.-]+/g, ""));
-  return isNaN(num) ? 0 : Math.round(num);
+  const digitsOnly = priceStr.replace(/\D/g, "");
+  const num = Number(digitsOnly);
+  return Number.isFinite(num) ? Math.round(num) : 0;
 }
 
 export async function createOrder(

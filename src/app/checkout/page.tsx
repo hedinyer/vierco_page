@@ -43,6 +43,11 @@ export default function CheckoutPage() {
     return sum + unit * item.quantity;
   }, 0);
 
+  const formatCurrency = (value: number): string => {
+    const formatted = new Intl.NumberFormat("es-CO").format(value);
+    return `$${formatted}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isEmpty) return;
@@ -381,16 +386,10 @@ export default function CheckoutPage() {
                     const lineTotal = unit * item.quantity;
                     const formattedLineTotal = isNaN(lineTotal)
                       ? item.price
-                      : `$${lineTotal.toLocaleString("es-CO", {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}`;
+                      : formatCurrency(lineTotal);
                     const formattedUnit = isNaN(unit)
                       ? item.price
-                      : `$${unit.toLocaleString("es-CO", {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        })}`;
+                      : formatCurrency(unit);
 
                     return (
                       <div
@@ -437,10 +436,7 @@ export default function CheckoutPage() {
                     Subtotal
                   </span>
                   <span className="font-body text-lg">
-                    {`$${subtotal.toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`}
+                    {formatCurrency(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -454,10 +450,7 @@ export default function CheckoutPage() {
                     Total del pedido
                   </span>
                   <span className="font-headline text-3xl font-bold">
-                    {`$${subtotal.toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`}
+                    {formatCurrency(subtotal)}
                   </span>
                 </div>
               </div>

@@ -7,6 +7,8 @@ type CartItem = {
   size: string;
   quantity: number;
   image?: string;
+  /** Stock máximo permitido para esta talla */
+  maxQuantity?: number;
 };
 
 interface CartState {
@@ -23,12 +25,25 @@ const cartSlice = createSlice({
   reducers: {
     addItem: (
       state,
-      action: PayloadAction<{ slug: string; name: string; price: string; size: string; image?: string }>
+      action: PayloadAction<{
+        slug: string;
+        name: string;
+        price: string;
+        size: string;
+        image?: string;
+        maxQuantity?: number;
+      }>
     ) => {
-      const { slug, size } = action.payload;
+      const { slug, size, maxQuantity } = action.payload;
       const existing = state.items.find((item) => item.slug === slug && item.size === size);
       if (existing) {
-        existing.quantity += 1;
+        const limit = existing.maxQuantity ?? maxQuantity;
+        if (limit == null || existing.quantity < limit) {
+          existing.quantity += 1;
+        }
+        if (limit != null) {
+          existing.maxQuantity = limit;
+        }
       } else {
         state.items.push({ ...action.payload, quantity: 1 });
       }
@@ -38,7 +53,9 @@ const cartSlice = createSlice({
         (item) => item.slug === action.payload.slug && item.size === action.payload.size
       );
       if (existing) {
-        existing.quantity += 1;
+        if (existing.maxQuantity == null || existing.quantity < existing.maxQuantity) {
+          existing.quantity += 1;
+        }
       }
     },
     decrementQuantity: (state, action: PayloadAction<{ slug: string; size: string }>) => {

@@ -1,18 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { Product } from "@/lib/products";
 
-const FILTERS = ["TODAS LAS SERIES", "OXFORDS", "DERBIS", "MOCASINES"];
+interface FilterBarProps {
+  products: Product[];
+}
 
-export default function FilterBar() {
+type FilterItem = {
+  label: string;
+  value: string | null; // null = todas
+  count: number;
+};
+
+export default function FilterBar({ products }: FilterBarProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const filters: FilterItem[] = useMemo(() => {
+    const total = products.length;
+    const countsByCategory = products.reduce<Record<string, number>>((acc, product) => {
+      const raw = product.category || "";
+      const key = raw.trim().toUpperCase();
+      if (!key) return acc;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const categoryFilters: FilterItem[] = Object.entries(countsByCategory).map(
+      ([category, count]) => ({
+        label: category,
+        value: category,
+        count,
+      })
+    );
+
+    return [
+      { label: "TODAS LAS SERIES", value: null, count: total },
+      ...categoryFilters,
+    ];
+  }, [products]);
+
+  const activeFilter = filters[activeIndex] ?? filters[0];
 
   return (
     <div className="px-6 lg:px-24 py-8 flex justify-between items-end border-b border-outline-variant/20">
       <div className="flex gap-12 flex-wrap">
-        {FILTERS.map((filter, i) => (
+        {filters.map((filter, i) => (
           <button
-            key={filter}
+            key={filter.label}
             onClick={() => setActiveIndex(i)}
             className={`font-label text-[10px] tracking-widest pb-1 transition-colors ${
               activeIndex === i
@@ -20,12 +55,19 @@ export default function FilterBar() {
                 : "text-on-surface-variant hover:text-primary"
             }`}
           >
-            {filter}
+            {filter.label}
+            {filter.value && ` (${filter.count})`}
           </button>
         ))}
       </div>
       <span className="font-label text-[10px] tracking-widest text-on-surface-variant">
-        MOSTRANDO 12 PRODUCTOS
+        {activeFilter.value
+          ? `MOSTRANDO ${activeFilter.count} PRODUCTO${
+              activeFilter.count === 1 ? "" : "S"
+            } EN ${activeFilter.label}`
+          : `MOSTRANDO ${activeFilter.count} PRODUCTO${
+              activeFilter.count === 1 ? "" : "S"
+            }`}
       </span>
     </div>
   );

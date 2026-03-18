@@ -23,19 +23,27 @@ export type CreateProductPayload = {
   name: string;
   price: string;
   availability?: string;
+  /** Descripción larga opcional del producto */
+  description?: string;
+  /** Categoría libre, p.ej. "OXFORDS", "ZAPATO BUENO" */
+  categoria?: string;
   imageUrl: string;
   altText: string;
   features: FeatureInput[];
   images: ImageInput[];
   sizes?: SizeInput[];
+   /** Tipo de producto: Corporativo / Industrial */
+  tipo?: string;
 };
 
 export type CreateProductResult =
   | { success: true; productId: string }
   | { success: false; error: string };
 
+/** Parses price string to integer (COP). Handles "450000", "450.000", "$450.000". */
 function parsePriceToCents(priceStr: string): number {
-  const num = Number(priceStr.replace(/[^0-9.-]+/g, "")); // "$450000" -> 450000
+  const digitsOnly = priceStr.replace(/\D/g, ""); // drop $ . , etc. so "450.000" -> 450000
+  const num = Number(digitsOnly);
   return Number.isFinite(num) ? Math.round(num) : 0;
 }
 
@@ -61,11 +69,13 @@ export async function createProductWithRelations(
         slug: payload.slug,
         ref: payload.ref || null,
         name: payload.name,
-        description: null,
+        description: payload.description || null,
         price_cents: priceCents,
         availability: payload.availability || null,
+        categoria: payload.categoria || null,
         image_url: payload.imageUrl,
         alt_text: payload.altText,
+        tipo: payload.tipo || null,
         sizes: (payload.sizes ?? []).filter(
           (s) => s.size.trim() && Number.isFinite(s.stock) && s.stock >= 0
         ),

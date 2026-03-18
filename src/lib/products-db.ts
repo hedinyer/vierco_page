@@ -12,6 +12,8 @@ type DbProduct = {
   availability: string | null;
   image_url: string;
   alt_text: string | null;
+  categoria?: string | null;
+  tipo?: string | null;
   sizes?: Array<{ size: string; stock: number }> | null;
 };
 
@@ -32,10 +34,8 @@ type DbImage = {
 };
 
 function formatPrice(priceCents: number): string {
-  return `$${priceCents.toLocaleString("es-CO", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`;
+  const formatted = new Intl.NumberFormat("es-CO").format(priceCents);
+  return `$${formatted}`;
 }
 
 function toProduct(
@@ -72,12 +72,15 @@ function toProduct(
     ref: p.ref ?? "",
     image: p.image_url,
     alt: p.alt_text ?? p.name,
+    description: p.description ?? undefined,
     gallery: gallery.length > 0 ? gallery : undefined,
     features: features
       .sort((a, b) => a.position - b.position)
       .map((f) => ({ title: f.title, description: f.description })),
     availability: p.availability ?? undefined,
     sizes,
+    category: p.categoria ?? undefined,
+    tipo: p.tipo ?? undefined,
   };
 }
 

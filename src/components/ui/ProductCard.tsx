@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, MouseEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, MouseEvent } from "react";
+import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { addItem } from "@/store";
 
@@ -13,6 +13,7 @@ interface ProductCardProps {
   price: string;
   image: string;
   alt: string;
+  description?: string;
   sizes?: ProductSize[];
 }
 
@@ -27,33 +28,49 @@ function getAvailableSizes(sizes?: ProductSize[]): string[] {
     .sort((a, b) => ALL_SIZES.indexOf(a) - ALL_SIZES.indexOf(b));
 }
 
-export default function ProductCard({ slug, name, price, image, alt, sizes }: ProductCardProps) {
+export default function ProductCard({
+  slug,
+  name,
+  price,
+  image,
+  alt,
+  description,
+  sizes,
+}: ProductCardProps) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const router = useRouter();
+  const [addedFeedback, setAddedFeedback] = useState(false);
+  const [supportsHover, setSupportsHover] = useState(false);
+  const [quickBuyOpen, setQuickBuyOpen] = useState(false);
   const dispatch = useDispatch();
   const availableSizes = getAvailableSizes(sizes);
   const isOutOfStock = availableSizes.length === 0;
 
-  const numericPrice = Number(price.replace(/[^0-9.-]+/g, "")) || 0;
-  const displayPrice = isNaN(numericPrice)
-    ? price
-    : `$${numericPrice.toLocaleString("es-CO", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })}`;
+  const displayPrice = price;
 
-  const handleSizeClick = (e: MouseEvent<HTMLButtonElement>, size: string) => {
+  useEffect(() => {
+    // On touch devices, :hover doesn't work reliably—enable tap-to-open quick buy.
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+    const apply = () => setSupportsHover(Boolean(mql?.matches));
+    apply();
+    if (!mql?.addEventListener) return;
+    mql.addEventListener("change", apply);
+    return () => mql.removeEventListener("change", apply);
+  }, []);
+
+  const handleSizeClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    const size = e.currentTarget.dataset.size!;
     setSelectedSize(size);
   };
 
   const handleAddToCartClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!selectedSize) {
-      return;
-    }
+    if (!selectedSize) return;
+    const stockForSize =
+      sizes?.find((s) => String(s.size ?? "") === String(selectedSize))?.stock ?? undefined;
     dispatch(
       addItem({
         slug,
@@ -61,28 +78,75 @@ export default function ProductCard({ slug, name, price, image, alt, sizes }: Pr
         price,
         size: selectedSize,
         image,
+        maxQuantity: stockForSize,
       })
     );
+    setAddedFeedback(true);
+    setTimeout(() => setAddedFeedback(false), 1500);
+    // Close overlay after adding on touch devices.
+    if (!supportsHover) setQuickBuyOpen(false);
   };
 
-  const handleCardClick = (e: MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest("[data-quick-overlay]")) return;
-    router.push(`/product/${encodeURIComponent(slug)}`);
-  };
+  const productUrl = `/product/${encodeURIComponent(slug)}`;
 
   return (
-    <div className="group cursor-pointer block" onClick={handleCardClick}>
-      <div className="relative aspect-4/3 bg-[#F7F7F7] flex items-center justify-center overflow-hidden mb-4 transition-all duration-700">
-        <img
-          alt={alt}
-          className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
-          src={image}
-        />
-        {/* Quick-Buy Matrix Overlay - clics aquí no navegan, solo seleccionan talla / añaden al carrito */}
-        <div
-          data-quick-overlay
-          className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm transition-opacity duration-500"
+    <div className="flex flex-col border border-outline-variant/20 rounded-lg overflow-hidden">
+      {/* Image area with hover overlay */}
+      <div
+        className="group relative aspect-4/3 bg-[#F7F7F7] flex items-center justify-center overflow-hidden mb-4 transition-all duration-700"
+        onClick={() => {
+          // Allow click/tap to open quick buy on all devices (more reliable than hover-only UX).
+          setQuickBuyOpen(true);
+        }}
+        onMouseLeave={() => {
+          // On hover devices, don't "stick" the overlay open when the cursor leaves the card.
+          if (supportsHover) setQuickBuyOpen(false);
+        }}
+      >
+        {/* Clickable image link — navigates to product page. Disables pointer events on hover so overlay receives clicks */}
+        <Link
+          href={productUrl}
+          className={`absolute inset-0 z-10 ${
+            supportsHover
+              ? quickBuyOpen
+                ? "pointer-events-none"
+                : "group-hover:pointer-events-none"
+              : quickBuyOpen
+              ? "pointer-events-none"
+              : ""
+          }`}
         >
+          <img
+            alt={alt}
+            className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
+            src={image}
+          />
+        </Link>
+
+        {/* Quick-Buy Overlay — sits above the link, captures clicks on hover */}
+        <div
+          className={`absolute inset-0 z-20 bg-white/85 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm transition-opacity duration-500 ${
+            quickBuyOpen
+              ? "opacity-100 pointer-events-auto"
+              : supportsHover
+              ? "opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {quickBuyOpen && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setQuickBuyOpen(false);
+              }}
+              className="absolute top-3 right-3 font-label text-[10px] tracking-[0.2em] text-on-surface-variant hover:text-primary transition-colors"
+              aria-label="Cerrar selección de talla"
+            >
+              CERRAR
+            </button>
+          )}
           <p className="font-label text-[10px] tracking-[0.3em] mb-6">
             {isOutOfStock ? "AGOTADO" : "SELECCIONA TALLA"}
           </p>
@@ -91,7 +155,8 @@ export default function ProductCard({ slug, name, price, image, alt, sizes }: Pr
               <button
                 key={size}
                 type="button"
-                onClick={(e) => handleSizeClick(e, size)}
+                data-size={size}
+                onClick={handleSizeClick}
                 className={`border py-3 text-[10px] font-label transition-colors ${
                   selectedSize === size
                     ? "bg-primary text-on-primary border-primary"
@@ -112,16 +177,27 @@ export default function ProductCard({ slug, name, price, image, alt, sizes }: Pr
                 : "text-on-surface-variant/40 cursor-not-allowed"
             }`}
           >
-            {isOutOfStock ? "AGOTADO" : "AÑADIR AL CARRITO"}
+            {addedFeedback
+              ? "✓ AÑADIDO"
+              : isOutOfStock
+              ? "AGOTADO"
+              : "AÑADIR AL CARRITO"}
           </button>
         </div>
       </div>
-      <div className="mt-4 flex flex-col">
-        <h3 className="font-headline text-xl mb-1">{name}</h3>
-        <p className="font-label text-xs text-on-surface-variant tracking-wider">
-          {displayPrice}
-        </p>
-      </div>
+
+      {/* Product info — also links to product page */}
+      <Link href={productUrl} className="mt-4 flex flex-col group/info px-4 pb-4">
+        <h3 className="font-headline text-xl mb-1 group-hover/info:text-secondary transition-colors">
+          {name}
+        </h3>
+        {description && (
+          <p className="font-body text-xs text-on-surface-variant mb-2 line-clamp-2">
+            {description}
+          </p>
+        )}
+        <p className="font-label text-xs text-on-surface-variant tracking-wider">{displayPrice}</p>
+      </Link>
     </div>
   );
 }

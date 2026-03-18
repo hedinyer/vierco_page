@@ -38,6 +38,8 @@ export default function CargarProductoPage() {
     name: "",
     price: "",
     availability: "",
+    description: "",
+    categoria: "",
     imageUrl: "",
     altText: "",
     features: [
@@ -159,6 +161,8 @@ export default function CargarProductoPage() {
       name: "",
       price: "",
       availability: "",
+      description: "",
+      categoria: "",
       imageUrl: "",
       altText: "",
     }));
@@ -229,6 +233,17 @@ export default function CargarProductoPage() {
                   />
                 </div>
               </div>
+              <div>
+                <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
+                  DESCRIPCIÓN
+                </label>
+                <textarea
+                  className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all min-h-[80px]"
+                  value={form.description ?? ""}
+                  onChange={(e) => handleChange("description", e.target.value)}
+                  placeholder="Descripción larga del producto (opcional)"
+                />
+              </div>
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
@@ -257,7 +272,7 @@ export default function CargarProductoPage() {
                   />
                 </div>
               </div>
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-3 gap-8">
                 <div>
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
                     DISPONIBILIDAD
@@ -269,6 +284,32 @@ export default function CargarProductoPage() {
                     onChange={(e) => handleChange("availability", e.target.value)}
                     placeholder="En stock / Edición limitada"
                   />
+                </div>
+                <div>
+                  <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
+                    CATEGORÍA
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
+                    value={form.categoria ?? ""}
+                    onChange={(e) => handleChange("categoria", e.target.value)}
+                    placeholder="Ej: ZAPATO BUENO"
+                  />
+                </div>
+                <div>
+                  <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
+                    TIPO
+                  </label>
+                  <select
+                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
+                    value={form.tipo ?? ""}
+                    onChange={(e) => handleChange("tipo", e.target.value)}
+                  >
+                    <option value="">Sin tipo</option>
+                    <option value="Corporativo">Corporativo</option>
+                    <option value="Industrial">Industrial</option>
+                  </select>
                 </div>
               </div>
               <div className="space-y-4 pt-6 border-t border-outline-variant/20">

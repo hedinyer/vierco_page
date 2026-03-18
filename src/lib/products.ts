@@ -8,9 +8,15 @@ export interface Product {
   image: string;
   alt: string;
   gallery?: string[];
+  /** Descripción larga opcional del producto */
+  description?: string;
   features: Array<{ title: string; description: string }>;
   availability?: string;
   sizes?: ProductSize[];
+  /** Optional categoría, p.ej. "OXFORDS", "DERBIS", "MOCASINES" */
+  category?: string;
+  /** Tipo de uso: "Corporativo" o "Industrial" (u otros) */
+  tipo?: string;
 }
 
 export const PRODUCTS: Product[] = [

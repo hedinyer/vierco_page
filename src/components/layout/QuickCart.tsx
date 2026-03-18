@@ -17,6 +17,11 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  const formatCurrency = (value: number): string => {
+    const formatted = new Intl.NumberFormat("es-CO").format(value);
+    return `$${formatted}`;
+  };
+
   const totalAmount = items.reduce((sum, item) => {
     const unit = Number(item.price.replace(/[^0-9.-]+/g, "")) || 0;
     return sum + unit * item.quantity;
@@ -73,16 +78,10 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
                 const lineTotal = unit * item.quantity;
                 const formattedTotal = isNaN(lineTotal)
                   ? item.price
-                  : `$${lineTotal.toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`;
+                  : formatCurrency(lineTotal);
                 const formattedUnit = isNaN(unit)
                   ? item.price
-                  : `$${unit.toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}`;
+                  : formatCurrency(unit);
 
                 return (
                   <div
@@ -121,12 +120,27 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
                         </span>
                         <button
                           type="button"
-                          className="w-6 h-6 flex items-center justify-center text-xs font-label hover:bg-surface-container-high transition-colors"
-                          onClick={() =>
+                          className={`w-6 h-6 flex items-center justify-center text-xs font-label hover:bg-surface-container-high transition-colors ${
+                            item.maxQuantity != null &&
+                            item.quantity >= item.maxQuantity
+                              ? "opacity-40 cursor-not-allowed hover:bg-transparent"
+                              : ""
+                          }`}
+                          disabled={
+                            item.maxQuantity != null &&
+                            item.quantity >= item.maxQuantity
+                          }
+                          onClick={() => {
+                            if (
+                              item.maxQuantity != null &&
+                              item.quantity >= item.maxQuantity
+                            ) {
+                              return;
+                            }
                             dispatch(
                               incrementQuantity({ slug: item.slug, size: item.size })
-                            )
-                          }
+                            );
+                          }}
                         >
                           +
                         </button>
@@ -153,10 +167,7 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
                 Total
               </span>
               <span className="font-headline text-lg">
-                {`$${totalAmount.toLocaleString("es-CO", {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                })}`}
+                {formatCurrency(totalAmount)}
               </span>
             </div>
           )}
