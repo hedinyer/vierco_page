@@ -60,9 +60,9 @@ export default function ProductPageClient({ product }: { product: Product }) {
     <div className="min-h-screen bg-background text-on-surface selection:bg-secondary selection:text-white">
       <TopNavBar onCartClick={() => setCartOpen((o) => !o)} />
       <QuickCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-      <main className="flex flex-col md:flex-row min-h-screen pt-20">
+      <main className="flex flex-col md:flex-row pt-24">
         <section className="w-full md:w-1/2 relative px-6 md:px-16 lg:px-24">
-          <div className="sticky top-[120px] h-[calc(100vh-160px)] flex flex-col justify-between pb-12">
+          <div className="flex flex-col gap-10 pb-12 md:sticky md:top-[120px]">
             <div>
               <span className="font-label text-[10px] tracking-[0.4em] text-secondary uppercase mb-6 block">
                 Ref. No. {product.ref}
@@ -109,7 +109,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
                 </div>
               </div>
             </div>
-            <div className="mt-auto">
+            <div>
               <button
                 type="button"
                 onClick={handleAddToCartClick}

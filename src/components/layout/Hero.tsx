@@ -2,20 +2,12 @@
 
 import { useRef, useEffect, useState } from "react";
 
-const VIDEO_SRC = "/2126786_Close_Up_Man_3840x2160.mp4";
+const VIDEO_SRC =
+  "https://uufwfagmbuncwbhtqseb.supabase.co/storage/v1/object/public/images/banner/shoebanner.mp4";
 
 export default function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoAvailable, setVideoAvailable] = useState(false);
-
-  useEffect(() => {
-    // Probe whether the video file actually exists before showing the element.
-    fetch(VIDEO_SRC, { method: "HEAD" })
-      .then((res) => {
-        if (res.ok) setVideoAvailable(true);
-      })
-      .catch(() => {});
-  }, []);
+  const [videoAvailable, setVideoAvailable] = useState(true);
 
   return (
     <header className="relative px-6 py-20 lg:px-24 min-h-[400px] overflow-hidden">
@@ -25,7 +17,7 @@ export default function Hero() {
         aria-hidden
       />
 
-      {/* Video de fondo — only mounted when the file is confirmed to exist */}
+      {/* Video de fondo */}
       {videoAvailable && (
         <video
           ref={videoRef}
@@ -33,15 +25,15 @@ export default function Hero() {
           muted
           loop
           playsInline
+          preload="auto"
+          crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-cover"
           aria-hidden
+          onError={() => setVideoAvailable(false)}
         >
           <source src={VIDEO_SRC} type="video/mp4" />
         </video>
       )}
-
-      {/* Overlay para legibilidad del texto */}
-      <div className="absolute inset-0 bg-primary/40" aria-hidden />
 
       {/* Contenido */}
       <div className="relative z-10 max-w-4xl">

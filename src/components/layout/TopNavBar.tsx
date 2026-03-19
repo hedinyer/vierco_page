@@ -58,11 +58,10 @@ export default function TopNavBar({
                 ? "text-secondary"
                 : "text-on-surface-variant/80 hover:text-secondary"
             }`}
-            onClick={() =>
-              onTipoChange?.(
-                selectedTipo === "Corporativo" ? null : "Corporativo"
-              )
-            }
+            onClick={() => {
+              if (selectedTipo === "Corporativo") return;
+              onTipoChange?.("Corporativo");
+            }}
           >
             CORPORATIVO
             {selectedTipo === "Corporativo" && (
@@ -76,11 +75,10 @@ export default function TopNavBar({
                 ? "text-secondary"
                 : "text-on-surface-variant/80 hover:text-secondary"
             }`}
-            onClick={() =>
-              onTipoChange?.(
-                selectedTipo === "Industrial" ? null : "Industrial"
-              )
-            }
+            onClick={() => {
+              if (selectedTipo === "Industrial") return;
+              onTipoChange?.("Industrial");
+            }}
           >
             INDUSTRIAL
             {selectedTipo === "Industrial" && (
