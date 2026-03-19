@@ -81,3 +81,6 @@ export const DitherEffect = forwardRef<any, DitherEffectProps>(({ pixelSize = 4.
     const effect = useMemo(() => new DitherEffectImpl({ pixelSize }), [pixelSize]);
     return <primitive ref={ref} object={effect} dispose={null} />;
 });
+
+// Helps React DevTools / lint rules for anonymous forwardRef components.
+DitherEffect.displayName = "DitherEffect";

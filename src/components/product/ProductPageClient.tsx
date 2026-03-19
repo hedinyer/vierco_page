@@ -60,7 +60,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
     <div className="min-h-screen bg-background text-on-surface selection:bg-secondary selection:text-white">
       <TopNavBar onCartClick={() => setCartOpen((o) => !o)} />
       <QuickCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-      <main className="flex flex-col md:flex-row pt-24">
+      <main className="flex flex-col md:flex-row pt-[calc(88px+env(safe-area-inset-top))]">
         <section className="w-full md:w-1/2 relative px-6 md:px-16 lg:px-24">
           <div className="flex flex-col gap-10 pb-12 md:sticky md:top-[120px]">
             <div>

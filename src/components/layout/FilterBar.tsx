@@ -43,7 +43,7 @@ export default function FilterBar({ products }: FilterBarProps) {
   const activeFilter = filters[activeIndex] ?? filters[0];
 
   return (
-    <div className="px-6 lg:px-24 py-8 flex justify-between items-end border-b border-outline-variant/20">
+    <div className="px-4 sm:px-6 lg:px-24 py-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6 border-b border-outline-variant/20">
       <div className="flex gap-12 flex-wrap">
         {filters.map((filter, i) => (
           <button
@@ -60,7 +60,7 @@ export default function FilterBar({ products }: FilterBarProps) {
           </button>
         ))}
       </div>
-      <span className="font-label text-[10px] tracking-widest text-on-surface-variant">
+      <span className="font-label text-[10px] tracking-widest text-on-surface-variant text-center sm:text-left">
         {activeFilter.value
           ? `MOSTRANDO ${activeFilter.count} PRODUCTO${
               activeFilter.count === 1 ? "" : "S"

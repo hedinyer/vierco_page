@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Newsreader, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
@@ -19,6 +19,12 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Vierco | Calzado Empresarial de Élite",
   description: "Elegancia y profesionalismo en cada paso. Calzado empresarial de la más alta calidad.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

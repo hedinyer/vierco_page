@@ -39,13 +39,13 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-[88px] bottom-0 bg-black/20 z-55 lg:hidden"
+          className="fixed inset-x-0 top-[calc(88px+env(safe-area-inset-top))] bottom-0 bg-black/20 z-55 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
       <aside
-        className={`fixed right-0 top-[88px] h-[calc(100vh-88px)] w-96 bg-surface-container-lowest z-60 border-l border-outline-variant/30 flex flex-col transition-transform duration-300 ease-out lg:top-0 lg:h-screen ${
+        className={`fixed right-0 top-[calc(88px+env(safe-area-inset-top))] h-[calc(100vh-(88px+env(safe-area-inset-top)))] w-[min(96vw,384px)] max-w-96 bg-surface-container-lowest z-60 border-l border-outline-variant/30 flex flex-col transition-transform duration-300 ease-out lg:top-0 lg:h-screen ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

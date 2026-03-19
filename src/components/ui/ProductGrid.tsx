@@ -16,12 +16,15 @@ export default function ProductGrid({ products }: ProductGridProps) {
 
   useEffect(() => {
     // Fade out, swap items, then fade back in.
-    setIsFading(true);
+    const raf = window.requestAnimationFrame(() => setIsFading(true));
     const t = window.setTimeout(() => {
       setRenderProducts(products);
       window.requestAnimationFrame(() => setIsFading(false));
     }, 160);
-    return () => window.clearTimeout(t);
+    return () => {
+      window.clearTimeout(t);
+      window.cancelAnimationFrame(raf);
+    };
   }, [productsKey, products]);
 
   return (

@@ -172,7 +172,7 @@ export default function CargarProductoPage() {
     <div className="min-h-screen bg-background text-on-surface selection:bg-secondary selection:text-white">
       <TopNavBar onCartClick={() => setCartOpen((o) => !o)} />
       <QuickCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-      <main className="min-h-screen py-24 px-6 flex justify-center">
+      <main className="min-h-screen pt-[calc(88px+env(safe-area-inset-top))] pb-24 px-6 flex justify-center">
         <div className="w-full max-w-3xl">
           <header className="mb-16">
             <p className="font-label text-[10px] tracking-[0.3em] uppercase text-on-surface-variant mb-3">

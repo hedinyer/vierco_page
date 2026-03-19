@@ -30,7 +30,7 @@ export default function TopNavBar({
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20 px-6 py-6 lg:px-12">
+    <nav className="sticky top-[env(safe-area-inset-top)] z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20 px-4 py-6 sm:px-6 lg:px-12">
       <div className="relative flex items-center justify-between">
         <Link
           href="/"
