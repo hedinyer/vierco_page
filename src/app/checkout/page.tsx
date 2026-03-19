@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
+import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store";
 import { clearCart } from "@/store";
 import { createOrder } from "@/app/actions/checkout";
@@ -462,9 +463,7 @@ export default function CheckoutPage() {
                 disabled={isEmpty || isSubmitting}
               >
                 {isSubmitting ? "PROCESANDO..." : "CONFIRMAR PEDIDO"}
-                <span className="material-symbols-outlined text-[16px]">
-                  arrow_forward
-                </span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
               <p className="mt-8 text-center font-label text-[10px] text-on-surface-variant tracking-widest">
                 TRANSACCIÓN CIFRADA SEGURA • CERTIFICACIÓN ISO 27001

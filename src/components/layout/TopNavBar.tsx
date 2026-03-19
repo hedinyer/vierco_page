@@ -47,45 +47,47 @@ export default function TopNavBar({
             className="block h-10 w-[115px] object-contain"
           />
         </Link>
-        <div
-          className="hidden md:flex items-end gap-10 absolute left-1/2 -translate-x-1/2"
-          style={{ marginTop: -3, marginBottom: -3 }}
-        >
-          <button
-            type="button"
-            className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-              selectedTipo === "Corporativo"
-                ? "text-secondary"
-                : "text-on-surface-variant/80 hover:text-secondary"
-            }`}
-            onClick={() => {
-              if (selectedTipo === "Corporativo") return;
-              onTipoChange?.("Corporativo");
-            }}
+        {onTipoChange && (
+          <div
+            className="hidden md:flex items-end gap-10 absolute left-1/2 -translate-x-1/2"
+            style={{ marginTop: -3, marginBottom: -3 }}
           >
-            CORPORATIVO
-            {selectedTipo === "Corporativo" && (
-              <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
-            )}
-          </button>
-          <button
-            type="button"
-            className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-              selectedTipo === "Industrial"
-                ? "text-secondary"
-                : "text-on-surface-variant/80 hover:text-secondary"
-            }`}
-            onClick={() => {
-              if (selectedTipo === "Industrial") return;
-              onTipoChange?.("Industrial");
-            }}
-          >
-            INDUSTRIAL
-            {selectedTipo === "Industrial" && (
-              <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
-            )}
-          </button>
-        </div>
+            <button
+              type="button"
+              className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
+                selectedTipo === "Corporativo"
+                  ? "text-secondary"
+                  : "text-on-surface-variant/80 hover:text-secondary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Corporativo") return;
+                onTipoChange("Corporativo");
+              }}
+            >
+              CORPORATIVO
+              {selectedTipo === "Corporativo" && (
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+              )}
+            </button>
+            <button
+              type="button"
+              className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
+                selectedTipo === "Industrial"
+                  ? "text-secondary"
+                  : "text-on-surface-variant/80 hover:text-secondary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Industrial") return;
+                onTipoChange("Industrial");
+              }}
+            >
+              INDUSTRIAL
+              {selectedTipo === "Industrial" && (
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+              )}
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-6">
           <button
             onClick={onCartClick}
@@ -99,6 +101,42 @@ export default function TopNavBar({
           </button>
         </div>
       </div>
+
+      {/* Mobile tipo switcher (prevents overlap with other content) */}
+      {onTipoChange && (
+        <div className="mt-5 md:hidden">
+          <div className="grid grid-cols-2 border border-outline-variant/30 bg-surface-container-lowest">
+            <button
+              type="button"
+              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                selectedTipo === "Corporativo"
+                  ? "bg-primary text-on-primary"
+                  : "text-on-surface-variant hover:text-primary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Corporativo") return;
+                onTipoChange("Corporativo");
+              }}
+            >
+              Corporativo
+            </button>
+            <button
+              type="button"
+              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                selectedTipo === "Industrial"
+                  ? "bg-primary text-on-primary"
+                  : "text-on-surface-variant hover:text-primary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Industrial") return;
+                onTipoChange("Industrial");
+              }}
+            >
+              Industrial
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

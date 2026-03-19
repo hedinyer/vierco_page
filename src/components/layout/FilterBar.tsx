@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Product } from "@/lib/products";
 
 interface FilterBarProps {
@@ -15,6 +15,7 @@ type FilterItem = {
 
 export default function FilterBar({ products }: FilterBarProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const filterRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const filters: FilterItem[] = useMemo(() => {
     const total = products.length;
@@ -42,14 +43,24 @@ export default function FilterBar({ products }: FilterBarProps) {
 
   const activeFilter = filters[activeIndex] ?? filters[0];
 
+  useEffect(() => {
+    const el = filterRefs.current[activeIndex];
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [activeIndex]);
+
   return (
     <div className="px-4 sm:px-6 lg:px-24 py-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6 border-b border-outline-variant/20">
-      <div className="flex gap-12 flex-wrap">
+      <div className="hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="flex gap-10 flex-nowrap whitespace-nowrap">
         {filters.map((filter, i) => (
           <button
             key={filter.label}
             onClick={() => setActiveIndex(i)}
-            className={`font-label text-[10px] tracking-widest pb-1 transition-colors ${
+            ref={(node) => {
+              filterRefs.current[i] = node;
+            }}
+            className={`shrink-0 font-label text-[10px] tracking-widest pb-1 transition-colors ${
               activeIndex === i
                 ? "border-b border-primary text-primary"
                 : "text-on-surface-variant hover:text-primary"
@@ -59,6 +70,7 @@ export default function FilterBar({ products }: FilterBarProps) {
             {filter.value && ` (${filter.count})`}
           </button>
         ))}
+        </div>
       </div>
       <span className="font-label text-[10px] tracking-widest text-on-surface-variant text-center sm:text-left">
         {activeFilter.value
