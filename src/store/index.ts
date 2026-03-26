@@ -74,10 +74,14 @@ const cartSlice = createSlice({
     clearCart: (state) => {
       state.items = [];
     },
+    setCartItems: (state, action: PayloadAction<CartItem[]>) => {
+      state.items = action.payload;
+    },
   },
 });
 
-export const { addItem, incrementQuantity, decrementQuantity, clearCart } = cartSlice.actions;
+export const { addItem, incrementQuantity, decrementQuantity, clearCart, setCartItems } =
+  cartSlice.actions;
 
 export const store = configureStore({
   reducer: {

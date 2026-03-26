@@ -1,8 +1,9 @@
 "use server";
 
 import { supabase } from "@/lib/supabase";
+import { parsePriceToCents } from "@/lib/checkout/pricing";
 
-type CartItem = {
+export type CartItem = {
   slug: string;
   name: string;
   price: string;
@@ -10,7 +11,7 @@ type CartItem = {
   quantity: number;
 };
 
-type CustomerData = {
+export type CustomerData = {
   email: string;
   fullName: string;
   phoneNumber: string;
@@ -19,7 +20,7 @@ type CustomerData = {
   legalIdType: string;
 };
 
-type ShippingAddress = {
+export type ShippingAddress = {
   addressLine1: string;
   city: string;
   phoneNumber: string;
@@ -31,14 +32,7 @@ export type CheckoutResult =
   | { success: true; orderId: string }
   | { success: false; error: string };
 
-/** Parses price string to integer (COP). Handles "450000", "450.000", "$450.000". */
-function parsePriceToCents(priceStr: string): number {
-  const digitsOnly = priceStr.replace(/\D/g, "");
-  const num = Number(digitsOnly);
-  return Number.isFinite(num) ? Math.round(num) : 0;
-}
-
-export async function createOrder(
+export async function createOrderRecord(
   customerData: CustomerData,
   shippingAddress: ShippingAddress,
   paymentMethod: string,
@@ -163,4 +157,18 @@ export async function createOrder(
       error: err instanceof Error ? err.message : "Error inesperado",
     };
   }
+}
+
+export async function createOrder(
+  customerData: CustomerData,
+  shippingAddress: ShippingAddress,
+  paymentMethod: string,
+  items: CartItem[]
+): Promise<CheckoutResult> {
+  return createOrderRecord(
+    customerData,
+    shippingAddress,
+    paymentMethod,
+    items
+  );
 }

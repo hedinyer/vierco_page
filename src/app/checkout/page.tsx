@@ -1,21 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store";
-import { clearCart } from "@/store";
-import { createOrder } from "@/app/actions/checkout";
+import { setCartItems } from "@/store";
+import { createWompiCheckout } from "@/app/actions/wompi";
 import TopNavBar from "@/components/layout/TopNavBar";
 import QuickCart from "@/components/layout/QuickCart";
 import Footer from "@/components/layout/Footer";
+import WompiPaymentSection, {
+  type WompiPaymentHandle,
+} from "@/components/checkout/WompiPaymentSection";
+import { parsePriceToCents } from "@/lib/checkout/pricing";
+import {
+  WOMPI_PAYMENT_OPTIONS,
+  type WompiPaymentMethodId,
+  type WompiPaymentOption,
+} from "@/lib/wompi/payment-methods";
+
+const CHECKOUT_DRAFT_KEY = "vierco_checkout_draft_v1";
+const AVAILABLE_METHODS = new Set(
+  WOMPI_PAYMENT_OPTIONS.map((o) => o.id)
+);
 
 export default function CheckoutPage() {
+  const wompiRef = useRef<WompiPaymentHandle>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const router = useRouter();
   const dispatch = useDispatch();
   const [customerData, setCustomerData] = useState({
     email: "",
@@ -32,17 +45,61 @@ export default function CheckoutPage() {
     region: "",
     country: "CO",
   });
-  const [paymentMethod, setPaymentMethod] = useState<
-    "PSE" | "CARD" | "BANK_TRANSFER"
-  >("PSE");
+  const [paymentMethod, setPaymentMethod] =
+    useState<WompiPaymentMethodId>("PSE");
 
   const items = useSelector((state: RootState) => state.cart.items);
   const isEmpty = items.length === 0;
+
+  // Restore cart + form state if user comes back after cancel/failure.
+  // We only restore when the cart is currently empty to avoid overwriting a new cart.
+  useEffect(() => {
+    if (!isEmpty) return;
+    try {
+      const raw = localStorage.getItem(CHECKOUT_DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as {
+        cartItems?: typeof items;
+        customerData?: typeof customerData;
+        shippingAddress?: typeof shippingAddress;
+        paymentMethod?: WompiPaymentMethodId;
+      };
+      if (!draft?.cartItems || !Array.isArray(draft.cartItems)) return;
+      dispatch(setCartItems(draft.cartItems));
+      if (draft.customerData) setCustomerData(draft.customerData);
+      if (draft.shippingAddress) setShippingAddress(draft.shippingAddress);
+      if (draft.paymentMethod && AVAILABLE_METHODS.has(draft.paymentMethod)) {
+        setPaymentMethod(draft.paymentMethod);
+      } else {
+        setPaymentMethod("PSE");
+      }
+    } catch {
+      // Ignore restore errors; user will proceed normally.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEmpty]);
 
   const subtotal = items.reduce((sum, item) => {
     const unit = Number(item.price.replace(/[^0-9.-]+/g, "")) || 0;
     return sum + unit * item.quantity;
   }, 0);
+
+  /** Whole COP pesos (same as `parsePriceToCents` × qty); not Wompi centavos. */
+  const subtotalPesos = items.reduce(
+    (sum, item) =>
+      sum + parsePriceToCents(item.price) * item.quantity,
+    0
+  );
+
+  const paymentGroups = useMemo(() => {
+    const map = new Map<string, WompiPaymentOption[]>();
+    for (const opt of WOMPI_PAYMENT_OPTIONS) {
+      const list = map.get(opt.group) ?? [];
+      list.push(opt);
+      map.set(opt.group, list);
+    }
+    return Array.from(map.entries());
+  }, []);
 
   const formatCurrency = (value: number): string => {
     // Si el valor viene sin miles (ej: 50) lo interpretamos como 50.000
@@ -54,10 +111,77 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isEmpty) return;
+
+    const wompi = wompiRef.current;
+    if (!wompi) {
+      setSubmitError("Pasarela de pago no disponible.");
+      return;
+    }
+
+    const { sessionId, deviceId } = wompi.getWompiSession();
+    if (!sessionId) {
+      setSubmitError(
+        "Espera a que cargue la pasarela Wompi (fingerprint / sessionId)."
+      );
+      return;
+    }
+
+    if (!wompi.termsAccepted()) {
+      setSubmitError(
+        "Debes aceptar los términos y la autorización de datos personales de Wompi."
+      );
+      return;
+    }
+
+    if (paymentMethod === "PSE" && !wompi.getPseBankCode()) {
+      setSubmitError("Selecciona un banco para pagar con PSE.");
+      return;
+    }
+
+    if (paymentMethod === "NEQUI") {
+      const n = wompi.getNequiPhone();
+      if (n.length !== 10) {
+        setSubmitError(
+          "Ingresa un número Nequi válido (10 dígitos, sin indicativo)."
+        );
+        return;
+      }
+    }
+
+    if (paymentMethod === "BANCOLOMBIA_BNPL" && subtotalPesos < 100_000) {
+      setSubmitError(
+        "BNPL Bancolombia requiere un total mínimo de $100.000 COP."
+      );
+      return;
+    }
+
+    if (
+      paymentMethod === "SU_PLUS" &&
+      (subtotalPesos < 35_000 || subtotalPesos > 5_000_000)
+    ) {
+      setSubmitError(
+        "SU+ Pay requiere un total entre $35.000 y $5.000.000 COP."
+      );
+      return;
+    }
+
+    let cardToken: string | undefined;
+    if (paymentMethod === "CARD") {
+      const tok = await wompi.tokenizeCard();
+      if (!tok) {
+        setSubmitError(
+          "No se pudo tokenizar la tarjeta. Revisa número, fechas y CVC."
+        );
+        return;
+      }
+      cardToken = tok;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
-    const result = await createOrder(
-      {
+
+    const result = await createWompiCheckout({
+      customerData: {
         email: customerData.email,
         fullName: customerData.fullName,
         phoneNumber: customerData.phoneNumber,
@@ -65,7 +189,7 @@ export default function CheckoutPage() {
         legalId: customerData.legalId,
         legalIdType: customerData.legalIdType,
       },
-      {
+      shippingAddress: {
         addressLine1: shippingAddress.addressLine1,
         city: shippingAddress.city,
         phoneNumber: shippingAddress.phoneNumber,
@@ -73,12 +197,44 @@ export default function CheckoutPage() {
         country: shippingAddress.country,
       },
       paymentMethod,
-      items
-    );
+      items,
+      sessionId,
+      deviceId,
+      termsAccepted: true,
+      pseBankCode:
+        paymentMethod === "PSE" ? wompi.getPseBankCode() : undefined,
+      cardToken,
+      installments:
+        paymentMethod === "CARD" ? wompi.getInstallments() : undefined,
+      nequiPhone:
+        paymentMethod === "NEQUI" ? wompi.getNequiPhone() : undefined,
+    });
+
     setIsSubmitting(false);
+
     if (result.success) {
-      dispatch(clearCart());
-      router.push(`/checkout/success?order=${result.orderId}`);
+      // Keep cart + form if the user cancels. We clear only after we confirm APPROVED on the success page.
+      try {
+        const wompi = wompiRef.current;
+        const draft = {
+          savedAt: Date.now(),
+          cartItems: items,
+          customerData,
+          shippingAddress,
+          paymentMethod,
+          paymentSection: wompi
+            ? {
+                pseBankCode: wompi.getPseBankCode(),
+                nequiPhone: wompi.getNequiPhone(),
+                installments: wompi.getInstallments(),
+              }
+            : undefined,
+        };
+        localStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
+      } catch {
+        // Best-effort persistence.
+      }
+      window.location.href = result.redirectUrl;
     } else {
       setSubmitError(result.error);
     }
@@ -311,59 +467,48 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              {/* Payment Tabs */}
-              <div className="grid grid-cols-3 gap-px bg-outline-variant/20 border border-outline-variant/20">
-                <button
-                  type="button"
-                  className={`py-6 px-4 group flex flex-col items-center justify-center gap-2 transition-colors relative ${
-                    paymentMethod === "PSE"
-                      ? "bg-surface-container-lowest"
-                      : "bg-surface"
-                  } hover:bg-surface-container`}
-                  onClick={() => setPaymentMethod("PSE")}
+              <div className="space-y-3">
+                <label className="block font-label text-[10px] tracking-widest text-on-surface-variant">
+                  MÉTODO (API WOMPI)
+                </label>
+                <select
+                  className="w-full bg-surface-container-low border border-outline-variant/30 py-4 px-3 font-body text-sm focus:border-primary focus:outline-none"
+                  value={paymentMethod}
+                  onChange={(e) =>
+                    setPaymentMethod(e.target.value as WompiPaymentMethodId)
+                  }
                 >
-                  <span className="font-label text-[10px] tracking-[0.2em] text-primary">
-                    PSE
-                  </span>
-                  {paymentMethod === "PSE" && (
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-primary" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`py-6 px-4 group flex flex-col items-center justify-center gap-2 transition-colors ${
-                    paymentMethod === "CARD"
-                      ? "bg-surface-container-lowest"
-                      : "bg-surface"
-                  } hover:bg-surface-container`}
-                  onClick={() => setPaymentMethod("CARD")}
-                >
-                  <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant">
-                    TARJETA DE CRÉDITO
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className={`py-6 px-4 group flex flex-col items-center justify-center gap-2 transition-colors ${
-                    paymentMethod === "BANK_TRANSFER"
-                      ? "bg-surface-container-lowest"
-                      : "bg-surface"
-                  } hover:bg-surface-container`}
-                  onClick={() => setPaymentMethod("BANK_TRANSFER")}
-                >
-                  <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant">
-                    TRANSFERENCIA BANCARIA
-                  </span>
-                </button>
+                  {paymentGroups.map(([groupName, opts]) => (
+                    <optgroup key={groupName} label={groupName}>
+                      {opts.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
               </div>
 
               <div className="mt-8 bg-surface-container-low p-8">
-                <p className="font-body text-sm text-on-surface-variant leading-relaxed italic">
-                  Selecciona tu método de pago preferido: PSE para pagos bancarios
-                  inmediatos, tarjeta de crédito para compras internacionales o
-                  transferencia bancaria para pagos corporativos.
+                <p className="font-body text-sm text-on-surface-variant leading-relaxed italic mb-0">
+                  Elige entre los{" "}
+                  <a
+                    href="https://docs.wompi.co/docs/colombia/metodos-de-pago/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    métodos de pago disponibles en la API
+                  </a>{" "}
+                  de Wompi (tarjeta, PSE, Nequi, Daviplata, transferencia y QR
+                  Bancolombia, efectivo en corresponsal, Puntos Colombia, BNPL,
+                  SU+ Pay, etc.). La disponibilidad real depende de tu comercio en
+                  el panel Wompi.
                 </p>
               </div>
+
+              <WompiPaymentSection ref={wompiRef} paymentMethod={paymentMethod} />
             </section>
 
             {/* Section 3: Order Summary & Action */}
@@ -466,7 +611,7 @@ export default function CheckoutPage() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
               <p className="mt-8 text-center font-label text-[10px] text-on-surface-variant tracking-widest">
-                TRANSACCIÓN CIFRADA SEGURA • CERTIFICACIÓN ISO 27001
+                PAGO CON WOMPI • TRANSACCIÓN CIFRADA
               </p>
             </section>
           </form>
