@@ -32,7 +32,7 @@ export type CreateProductPayload = {
   features: FeatureInput[];
   images: ImageInput[];
   sizes?: SizeInput[];
-   /** Tipo de producto: Corporativo / Industrial */
+  /** Tipo de producto: Industrial, Hombre o Mujer (pestañas independientes). */
   tipo?: string;
 };
 

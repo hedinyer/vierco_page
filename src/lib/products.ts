@@ -1,5 +1,11 @@
 export type ProductSize = { size: string; stock: number };
 
+/** Línea principal en el sitio (orden en nav: Hombre, Mujer, Industrial). */
+export type ProductTipo = "Industrial" | "Hombre" | "Mujer";
+
+/** Valores de categoría para el filtro Formal / Tennis / Sport (Hombre / Mujer). */
+export type ProductLinea = "formal" | "tennis" | "sport";
+
 export interface Product {
   slug: string;
   name: string;
@@ -13,9 +19,9 @@ export interface Product {
   features: Array<{ title: string; description: string }>;
   availability?: string;
   sizes?: ProductSize[];
-  /** Optional categoría, p.ej. "OXFORDS", "DERBIS", "MOCASINES" */
+  /** Categoría: para Hombre/Mujer usar Formal, Tennis o Sport (coincide con el filtro del sitio). Para Industrial, p. ej. series de calzado. */
   category?: string;
-  /** Tipo de uso: "Corporativo" o "Industrial" (u otros) */
+  /** Tipo / línea: Industrial, Hombre o Mujer (pestañas independientes en el nav). */
   tipo?: string;
 }
 

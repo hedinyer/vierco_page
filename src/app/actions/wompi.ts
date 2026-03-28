@@ -349,7 +349,8 @@ export async function createWompiCheckout(params: {
   const base = getWompiApiBaseUrl();
   const baseUrl = await getRequestBaseUrl();
   const clientIp = await getClientIp();
-  const redirectUrl = `${baseUrl}/checkout/success?order=${encodeURIComponent(orderId)}`;
+  /** Wompi añade `?id=<transaction_id>` al volver; sincronizamos pago en `/checkout`. */
+  const redirectUrl = `${baseUrl}/checkout?order=${encodeURIComponent(orderId)}`;
 
   const tokens = await fetchMerchantTokens();
   if ("error" in tokens) {
@@ -601,10 +602,19 @@ export async function createWompiCheckout(params: {
   return { success: true, orderId, redirectUrl: redirectUrlFinal };
 }
 
-export async function fetchWompiTransactionStatus(
+export type WompiTransactionPublicData = {
+  id?: string;
+  status?: string | null;
+  reference?: string | null;
+  amount_in_cents?: number | null;
+  status_message?: string | null;
+  statusMessage?: string | null;
+};
+
+export async function fetchWompiTransactionById(
   transactionId: string
 ): Promise<
-  | { success: true; status: string | null; statusMessage?: string | null }
+  | { success: true; data: WompiTransactionPublicData }
   | { success: false; error: string }
 > {
   const pub = getPublicKey();
@@ -625,19 +635,26 @@ export async function fetchWompiTransactionStatus(
       };
     }
 
-    const json = (await res.json()) as {
-      data?: {
-        status?: string;
-        status_message?: string | null;
-        statusMessage?: string | null;
-      };
-    };
-
-    const status = json.data?.status ?? null;
-    const statusMessage = json.data?.status_message ?? json.data?.statusMessage ?? null;
-
-    return { success: true, status, statusMessage };
+    const json = (await res.json()) as { data?: WompiTransactionPublicData };
+    const data = json.data ?? {};
+    return { success: true, data };
   } catch {
     return { success: false, error: "Error de red al consultar la transacción" };
   }
+}
+
+export async function fetchWompiTransactionStatus(
+  transactionId: string
+): Promise<
+  | { success: true; status: string | null; statusMessage?: string | null }
+  | { success: false; error: string }
+> {
+  const res = await fetchWompiTransactionById(transactionId);
+  if (!res.success) {
+    return { success: false, error: res.error };
+  }
+  const status = res.data.status ?? null;
+  const statusMessage =
+    res.data.status_message ?? res.data.statusMessage ?? null;
+  return { success: true, status, statusMessage };
 }

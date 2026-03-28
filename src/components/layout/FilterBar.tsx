@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { Product } from "@/lib/products";
 
 interface FilterBarProps {
   products: Product[];
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
 }
 
 type FilterItem = {
@@ -13,8 +15,11 @@ type FilterItem = {
   count: number;
 };
 
-export default function FilterBar({ products }: FilterBarProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export default function FilterBar({
+  products,
+  selectedCategory,
+  onCategoryChange,
+}: FilterBarProps) {
   const filterRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const filters: FilterItem[] = useMemo(() => {
@@ -41,6 +46,11 @@ export default function FilterBar({ products }: FilterBarProps) {
     ];
   }, [products]);
 
+  const activeIndex = useMemo(() => {
+    const idx = filters.findIndex((f) => f.value === selectedCategory);
+    return idx >= 0 ? idx : 0;
+  }, [filters, selectedCategory]);
+
   const activeFilter = filters[activeIndex] ?? filters[0];
 
   useEffect(() => {
@@ -56,7 +66,7 @@ export default function FilterBar({ products }: FilterBarProps) {
         {filters.map((filter, i) => (
           <button
             key={filter.label}
-            onClick={() => setActiveIndex(i)}
+            onClick={() => onCategoryChange(filter.value)}
             ref={(node) => {
               filterRefs.current[i] = node;
             }}

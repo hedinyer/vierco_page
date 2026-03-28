@@ -294,7 +294,11 @@ export default function CargarProductoPage() {
                     className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
                     value={form.categoria ?? ""}
                     onChange={(e) => handleChange("categoria", e.target.value)}
-                    placeholder="Ej: ZAPATO BUENO"
+                    placeholder={
+                      form.tipo === "Hombre" || form.tipo === "Mujer"
+                        ? "Formal, Tennis o Sport"
+                        : "Ej: ZAPATO BUENO"
+                    }
                   />
                 </div>
                 <div>
@@ -307,7 +311,8 @@ export default function CargarProductoPage() {
                     onChange={(e) => handleChange("tipo", e.target.value)}
                   >
                     <option value="">Sin tipo</option>
-                    <option value="Corporativo">Corporativo</option>
+                    <option value="Hombre">Hombre</option>
+                    <option value="Mujer">Mujer</option>
                     <option value="Industrial">Industrial</option>
                   </select>
                 </div>

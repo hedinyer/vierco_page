@@ -5,11 +5,12 @@ import { ShoppingBag } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
+import type { ProductTipo } from "@/lib/products";
 
 interface TopNavBarProps {
   onCartClick: () => void;
-  selectedTipo?: "Corporativo" | "Industrial" | null;
-  onTipoChange?: (tipo: "Corporativo" | "Industrial" | null) => void;
+  selectedTipo?: ProductTipo | null;
+  onTipoChange?: (tipo: ProductTipo) => void;
 }
 
 export default function TopNavBar({
@@ -55,17 +56,34 @@ export default function TopNavBar({
             <button
               type="button"
               className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-                selectedTipo === "Corporativo"
+                selectedTipo === "Hombre"
                   ? "text-secondary"
                   : "text-on-surface-variant/80 hover:text-secondary"
               }`}
               onClick={() => {
-                if (selectedTipo === "Corporativo") return;
-                onTipoChange("Corporativo");
+                if (selectedTipo === "Hombre") return;
+                onTipoChange("Hombre");
               }}
             >
-              CORPORATIVO
-              {selectedTipo === "Corporativo" && (
+              HOMBRE
+              {selectedTipo === "Hombre" && (
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+              )}
+            </button>
+            <button
+              type="button"
+              className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
+                selectedTipo === "Mujer"
+                  ? "text-secondary"
+                  : "text-on-surface-variant/80 hover:text-secondary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Mujer") return;
+                onTipoChange("Mujer");
+              }}
+            >
+              MUJER
+              {selectedTipo === "Mujer" && (
                 <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
               )}
             </button>
@@ -105,20 +123,34 @@ export default function TopNavBar({
       {/* Mobile tipo switcher (prevents overlap with other content) */}
       {onTipoChange && (
         <div className="mt-5 md:hidden">
-          <div className="grid grid-cols-2 border border-outline-variant/30 bg-surface-container-lowest">
+          <div className="grid grid-cols-3 border border-outline-variant/30 bg-surface-container-lowest">
             <button
               type="button"
               className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
-                selectedTipo === "Corporativo"
+                selectedTipo === "Hombre"
                   ? "bg-primary text-on-primary"
                   : "text-on-surface-variant hover:text-primary"
               }`}
               onClick={() => {
-                if (selectedTipo === "Corporativo") return;
-                onTipoChange("Corporativo");
+                if (selectedTipo === "Hombre") return;
+                onTipoChange("Hombre");
               }}
             >
-              Corporativo
+              Hombre
+            </button>
+            <button
+              type="button"
+              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                selectedTipo === "Mujer"
+                  ? "bg-primary text-on-primary"
+                  : "text-on-surface-variant hover:text-primary"
+              }`}
+              onClick={() => {
+                if (selectedTipo === "Mujer") return;
+                onTipoChange("Mujer");
+              }}
+            >
+              Mujer
             </button>
             <button
               type="button"

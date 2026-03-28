@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowRight } from "lucide-react";
 import type { RootState } from "@/store";
@@ -12,17 +12,44 @@ import Footer from "@/components/layout/Footer";
 import WompiPaymentSection, {
   type WompiPaymentHandle,
 } from "@/components/checkout/WompiPaymentSection";
+import { CheckoutPaymentReturn } from "@/components/checkout/CheckoutPaymentReturn";
 import { parsePriceToCents } from "@/lib/checkout/pricing";
 import {
   WOMPI_PAYMENT_OPTIONS,
   type WompiPaymentMethodId,
   type WompiPaymentOption,
 } from "@/lib/wompi/payment-methods";
+import {
+  COLOMBIA_DEPARTMENTS,
+  getCitiesByDepartment,
+} from "@/lib/colombia-locations";
 
 const CHECKOUT_DRAFT_KEY = "vierco_checkout_draft_v1";
 const AVAILABLE_METHODS = new Set(
   WOMPI_PAYMENT_OPTIONS.map((o) => o.id)
 );
+
+function digitCount(s: string): number {
+  return s.replace(/\D/g, "").length;
+}
+
+function isValidEmail(s: string): boolean {
+  const t = s.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
+}
+
+function FieldFilledMark({ ok }: { ok: boolean }) {
+  if (!ok) return null;
+  return (
+    <span
+      className="shrink-0 text-secondary text-lg leading-none select-none"
+      aria-hidden
+      title="Completo"
+    >
+      ✔️
+    </span>
+  );
+}
 
 export default function CheckoutPage() {
   const wompiRef = useRef<WompiPaymentHandle>(null);
@@ -101,6 +128,44 @@ export default function CheckoutPage() {
     return Array.from(map.entries());
   }, []);
 
+  const citiesInSelectedDepartment = useMemo(
+    () => getCitiesByDepartment(shippingAddress.region),
+    [shippingAddress.region]
+  );
+
+  useEffect(() => {
+    if (!shippingAddress.region || !shippingAddress.city) return;
+    const list = getCitiesByDepartment(shippingAddress.region);
+    if (!list.includes(shippingAddress.city)) {
+      setShippingAddress((p) => ({ ...p, city: "" }));
+    }
+  }, [shippingAddress.region, shippingAddress.city]);
+
+  const fieldComplete = useMemo(
+    () => ({
+      fullName: customerData.fullName.trim().length >= 2,
+      email: isValidEmail(customerData.email),
+      phoneNumber: digitCount(customerData.phoneNumber) >= 10,
+      legalId: customerData.legalId.trim().length >= 5,
+      addressLine1: shippingAddress.addressLine1.trim().length >= 5,
+      city: shippingAddress.city.trim().length > 0,
+      region: shippingAddress.region.trim().length > 0,
+      shippingPhone: digitCount(shippingAddress.phoneNumber) >= 10,
+    }),
+    [customerData, shippingAddress]
+  );
+
+  const formComplete =
+    !isEmpty &&
+    fieldComplete.fullName &&
+    fieldComplete.email &&
+    fieldComplete.phoneNumber &&
+    fieldComplete.legalId &&
+    fieldComplete.addressLine1 &&
+    fieldComplete.city &&
+    fieldComplete.region &&
+    fieldComplete.shippingPhone;
+
   const formatCurrency = (value: number): string => {
     // Si el valor viene sin miles (ej: 50) lo interpretamos como 50.000
     const normalized = value < 1000 ? value * 1000 : value;
@@ -110,7 +175,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isEmpty) return;
+    if (isEmpty || !formComplete) return;
 
     const wompi = wompiRef.current;
     if (!wompi) {
@@ -242,6 +307,9 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface selection:bg-secondary selection:text-white">
+      <Suspense fallback={null}>
+        <CheckoutPaymentReturn />
+      </Suspense>
       <TopNavBar onCartClick={() => setCartOpen((o) => !o)} />
       <QuickCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
 
@@ -272,9 +340,12 @@ export default function CheckoutPage() {
                 {/* Buyer (customerData) */}
                 <div className="grid grid-cols-1 gap-10">
                   <div className="relative group">
-                    <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                      NOMBRE COMPLETO DEL COMPRADOR
-                    </label>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                        NOMBRE COMPLETO DEL COMPRADOR
+                      </label>
+                      <FieldFilledMark ok={fieldComplete.fullName} />
+                    </div>
                     <input
                       type="text"
                       className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -289,9 +360,12 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="relative group">
-                    <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                      EMAIL
-                    </label>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                        EMAIL
+                      </label>
+                      <FieldFilledMark ok={fieldComplete.email} />
+                    </div>
                     <input
                       type="email"
                       className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -306,9 +380,12 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="relative group">
-                    <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                      TELÉFONO
-                    </label>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                        TELÉFONO
+                      </label>
+                      <FieldFilledMark ok={fieldComplete.phoneNumber} />
+                    </div>
                     <input
                       type="tel"
                       className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -344,9 +421,12 @@ export default function CheckoutPage() {
                       </select>
                     </div>
                     <div className="relative group">
-                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                        NÚMERO DE DOCUMENTO
-                      </label>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                          NÚMERO DE DOCUMENTO
+                        </label>
+                        <FieldFilledMark ok={fieldComplete.legalId} />
+                      </div>
                       <input
                         type="text"
                         className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -371,9 +451,12 @@ export default function CheckoutPage() {
                     DIRECCIÓN DE ENVÍO
                   </p>
                   <div className="relative group">
-                    <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                      DIRECCIÓN
-                    </label>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                        DIRECCIÓN
+                      </label>
+                      <FieldFilledMark ok={fieldComplete.addressLine1} />
+                    </div>
                     <input
                       type="text"
                       className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -387,34 +470,14 @@ export default function CheckoutPage() {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="relative group">
-                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                        CIUDAD
-                      </label>
-                      <select
-                        className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
-                        value={shippingAddress.city}
-                        onChange={(e) =>
-                          setShippingAddress((prev) => ({
-                            ...prev,
-                            city: e.target.value,
-                          }))
-                        }
-                      >
-                        <option value="">Selecciona ciudad</option>
-                        <option value="Bogotá">Bogotá</option>
-                        <option value="Medellín">Medellín</option>
-                        <option value="Cali">Cali</option>
-                        <option value="Barranquilla">Barranquilla</option>
-                        <option value="Cartagena">Cartagena</option>
-                        <option value="Bucaramanga">Bucaramanga</option>
-                      </select>
-                    </div>
-                    <div className="relative group">
-                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                        DEPARTAMENTO
-                      </label>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                          DEPARTAMENTO
+                        </label>
+                        <FieldFilledMark ok={fieldComplete.region} />
+                      </div>
                       <select
                         className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
                         value={shippingAddress.region}
@@ -422,23 +485,56 @@ export default function CheckoutPage() {
                           setShippingAddress((prev) => ({
                             ...prev,
                             region: e.target.value,
+                            city: "",
                           }))
                         }
                       >
                         <option value="">Selecciona departamento</option>
-                        <option value="Cundinamarca">Cundinamarca</option>
-                        <option value="Antioquia">Antioquia</option>
-                        <option value="Valle del Cauca">Valle del Cauca</option>
-                        <option value="Atlántico">Atlántico</option>
-                        <option value="Bolívar">Bolívar</option>
-                        <option value="Santander">Santander</option>
+                        {COLOMBIA_DEPARTMENTS.map((dept) => (
+                          <option key={dept} value={dept}>
+                            {dept}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="relative group">
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                          CIUDAD O MUNICIPIO
+                        </label>
+                        <FieldFilledMark ok={fieldComplete.city} />
+                      </div>
+                      <select
+                        className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        value={shippingAddress.city}
+                        disabled={!shippingAddress.region}
+                        onChange={(e) =>
+                          setShippingAddress((prev) => ({
+                            ...prev,
+                            city: e.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">
+                          {shippingAddress.region
+                            ? "Selecciona ciudad o municipio"
+                            : "Primero elige un departamento"}
+                        </option>
+                        {citiesInSelectedDepartment.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
                   <div className="relative group">
-                    <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                      TELÉFONO DE ENVÍO
-                    </label>
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-0">
+                        TELÉFONO DE ENVÍO
+                      </label>
+                      <FieldFilledMark ok={fieldComplete.shippingPhone} />
+                    </div>
                     <input
                       type="tel"
                       className="w-full bg-transparent border-t-0 border-x-0 border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all placeholder:text-outline-variant/50"
@@ -488,24 +584,6 @@ export default function CheckoutPage() {
                     </optgroup>
                   ))}
                 </select>
-              </div>
-
-              <div className="mt-8 bg-surface-container-low p-8">
-                <p className="font-body text-sm text-on-surface-variant leading-relaxed italic mb-0">
-                  Elige entre los{" "}
-                  <a
-                    href="https://docs.wompi.co/docs/colombia/metodos-de-pago/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline"
-                  >
-                    métodos de pago disponibles en la API
-                  </a>{" "}
-                  de Wompi (tarjeta, PSE, Nequi, Daviplata, transferencia y QR
-                  Bancolombia, efectivo en corresponsal, Puntos Colombia, BNPL,
-                  SU+ Pay, etc.). La disponibilidad real depende de tu comercio en
-                  el panel Wompi.
-                </p>
               </div>
 
               <WompiPaymentSection ref={wompiRef} paymentMethod={paymentMethod} />
@@ -587,11 +665,13 @@ export default function CheckoutPage() {
                     {formatCurrency(subtotal)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-label text-xs tracking-widest text-on-surface-variant uppercase">
+                <div className="flex justify-between items-center gap-4">
+                  <span className="font-label text-xs tracking-widest text-on-surface-variant uppercase shrink-0">
                     Costo de envío
                   </span>
-                  <span className="font-body text-lg">$0</span>
+                  <span className="font-body text-sm sm:text-base text-on-surface-variant text-right">
+                    A cargo del comprador
+                  </span>
                 </div>
                 <div className="flex justify-between items-center pt-6 border-t border-outline-variant/20">
                   <span className="font-label text-sm tracking-widest font-bold uppercase">
@@ -605,7 +685,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 className="w-full h-[56px] bg-primary text-on-primary font-label text-xs tracking-[0.4em] uppercase hover:bg-secondary transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isEmpty || isSubmitting}
+                disabled={isEmpty || isSubmitting || !formComplete}
               >
                 {isSubmitting ? "PROCESANDO..." : "CONFIRMAR PEDIDO"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
