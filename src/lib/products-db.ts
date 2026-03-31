@@ -1,6 +1,5 @@
 import { supabase } from "./supabase";
 import type { Product } from "./products";
-import { PRODUCTS, getProductBySlug, getProductByName } from "./products";
 
 type DbProduct = {
   id: string;
@@ -94,10 +93,10 @@ export async function getProductsFromDb(): Promise<Product[]> {
 
   if (productsError) {
     console.error("products fetch error:", productsError);
-    return PRODUCTS;
+    return [];
   }
 
-  if (!products?.length) return PRODUCTS;
+  if (!products?.length) return [];
 
   const ids = products.map((p) => p.id);
   const [featuresRes, imagesRes] = await Promise.all([
@@ -117,7 +116,7 @@ export async function getProductsFromDb(): Promise<Product[]> {
 
 export async function getProductByNameFromDb(name: string): Promise<Product | null> {
   const cleanName = name?.trim();
-  if (!cleanName) return getProductByName(name) ?? null;
+  if (!cleanName) return null;
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -132,7 +131,7 @@ export async function getProductByNameFromDb(name: string): Promise<Product | nu
       allProducts.find((p) => p.name === cleanName) ??
       allProducts.find((p) => p.name.toLowerCase() === cleanName.toLowerCase());
     if (found) return found;
-    return getProductByName(cleanName) ?? null;
+    return null;
   }
 
   if (!product) {
@@ -141,7 +140,7 @@ export async function getProductByNameFromDb(name: string): Promise<Product | nu
       allProducts.find((p) => p.name === cleanName) ??
       allProducts.find((p) => p.name.toLowerCase() === cleanName.toLowerCase());
     if (found) return found;
-    return getProductByName(cleanName) ?? null;
+    return null;
   }
 
   const [featuresRes, imagesRes] = await Promise.all([
@@ -157,7 +156,7 @@ export async function getProductByNameFromDb(name: string): Promise<Product | nu
 
 export async function getProductBySlugFromDb(slug: string): Promise<Product | null> {
   const cleanSlug = slug?.trim();
-  if (!cleanSlug) return getProductBySlug(slug) ?? null;
+  if (!cleanSlug) return null;
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -168,12 +167,12 @@ export async function getProductBySlugFromDb(slug: string): Promise<Product | nu
   if (productError) {
     console.error("getProductBySlugFromDb error:", productError);
     const allProducts = await getProductsFromDb();
-    return allProducts.find((p) => p.slug === cleanSlug) ?? getProductBySlug(cleanSlug) ?? null;
+    return allProducts.find((p) => p.slug === cleanSlug) ?? null;
   }
 
   if (!product) {
     const allProducts = await getProductsFromDb();
-    return allProducts.find((p) => p.slug === cleanSlug) ?? getProductBySlug(cleanSlug) ?? null;
+    return allProducts.find((p) => p.slug === cleanSlug) ?? null;
   }
 
   const [featuresRes, imagesRes] = await Promise.all([
