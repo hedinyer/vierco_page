@@ -50,8 +50,57 @@ export default function CargarProductoPage() {
     images: [{ ...EMPTY_IMAGE }, { ...EMPTY_IMAGE }, { ...EMPTY_IMAGE }],
   });
 
+  const slugifyName = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+  const generateRefFromName = (value: string) => {
+    const base = value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 6);
+    const suffix = Date.now().toString().slice(-4);
+    return `${base || "PROD"}-${suffix}`;
+  };
+
   const handleChange = (field: keyof CreateProductPayload, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleNameChange = (value: string) => {
+    const autoSlug = slugifyName(value);
+    const autoRef = generateRefFromName(value);
+    setForm((prev) => ({
+      ...prev,
+      name: value,
+      slug: autoSlug,
+      ref: autoRef,
+    }));
+  };
+
+  const getCategoriaOptions = (tipo?: string) => {
+    if (tipo === "Hombre" || tipo === "Mujer") {
+      return ["Formal", "Tennis", "Sport"];
+    }
+    if (tipo === "Industrial") {
+      return ["Seguridad"];
+    }
+    return [];
+  };
+
+  const handleTipoChange = (tipo: string) => {
+    const allowedCategorias = getCategoriaOptions(tipo);
+    setForm((prev) => ({
+      ...prev,
+      tipo,
+      categoria: allowedCategorias.includes(prev.categoria ?? "") ? prev.categoria : "",
+    }));
   };
 
   const handleFeatureChange = (
@@ -79,7 +128,14 @@ export default function CargarProductoPage() {
     setIsSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(null);
-    let payload: CreateProductPayload = { ...form, sizes };
+    const ensuredSlug = form.slug || slugifyName(form.name) || `producto-${Date.now()}`;
+    const ensuredRef = form.ref || generateRefFromName(form.name);
+    let payload: CreateProductPayload = {
+      ...form,
+      slug: ensuredSlug,
+      ref: ensuredRef,
+      sizes,
+    };
 
     try {
       if (imageFile) {
@@ -215,21 +271,9 @@ export default function CargarProductoPage() {
                     type="text"
                     className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
                     value={form.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
+                    onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="Oxford Ejecutivo"
                     required
-                  />
-                </div>
-                <div>
-                  <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                    REF
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
-                    value={form.ref}
-                    onChange={(e) => handleChange("ref", e.target.value)}
-                    placeholder="8829-X"
                   />
                 </div>
               </div>
@@ -244,20 +288,7 @@ export default function CargarProductoPage() {
                   placeholder="Descripción larga del producto (opcional)"
                 />
               </div>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                    SLUG (URL)
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
-                    value={form.slug}
-                    onChange={(e) => handleChange("slug", e.target.value)}
-                    placeholder="oxford-ejecutivo"
-                    required
-                  />
-                </div>
+              <div className="grid md:grid-cols-1 gap-8">
                 <div>
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
                     PRECIO (COP)
@@ -277,29 +308,35 @@ export default function CargarProductoPage() {
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
                     DISPONIBILIDAD
                   </label>
-                  <input
-                    type="text"
-                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
+                  <select
+                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
                     value={form.availability}
                     onChange={(e) => handleChange("availability", e.target.value)}
-                    placeholder="En stock / Edición limitada"
-                  />
+                  >
+                    <option value="">Selecciona disponibilidad</option>
+                    <option value="En stock">En stock</option>
+                    <option value="Sin stock">Sin stock</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
                     CATEGORÍA
                   </label>
-                  <input
-                    type="text"
-                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
+                  <select
+                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
                     value={form.categoria ?? ""}
                     onChange={(e) => handleChange("categoria", e.target.value)}
-                    placeholder={
-                      form.tipo === "Hombre" || form.tipo === "Mujer"
-                        ? "Formal, Tennis o Sport"
-                        : "Ej: ZAPATO BUENO"
-                    }
-                  />
+                    disabled={!form.tipo}
+                  >
+                    <option value="">
+                      {!form.tipo ? "Selecciona tipo primero" : "Selecciona categoría"}
+                    </option>
+                    {getCategoriaOptions(form.tipo).map((categoria) => (
+                      <option key={categoria} value={categoria}>
+                        {categoria}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
@@ -308,7 +345,7 @@ export default function CargarProductoPage() {
                   <select
                     className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-sm focus:border-primary transition-all"
                     value={form.tipo ?? ""}
-                    onChange={(e) => handleChange("tipo", e.target.value)}
+                    onChange={(e) => handleTipoChange(e.target.value)}
                   >
                     <option value="">Sin tipo</option>
                     <option value="Hombre">Hombre</option>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cargar Producto - Vierco</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; background: #111; color: #eee; }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    label { font-size: 12px; color: #bbb; }
+    input, select, textarea, button {
+      width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px;
+      border: 1px solid #333; background: #1b1b1b; color: #fff;
+    }
+    textarea { min-height: 80px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .card { border: 1px solid #2a2a2a; border-radius: 8px; padding: 10px; margin-top: 8px; }
+    button { background: #2d7cff; border: none; font-weight: bold; }
+    .hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+  </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <h1>Cargar producto</h1>
+  <div class="grid">
+    <div>
+      <label>Nombre</label>
+      <input id="name" placeholder="Oxford Ejecutivo" />
+    </div>
+    <div>
+      <label>Descripcion</label>
+      <textarea id="description" placeholder="Descripcion opcional"></textarea>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Precio (COP)</label>
+        <input id="price" placeholder="210000" />
+      </div>
+      <div>
+        <label>Disponibilidad</label>
+        <select id="availability">
+          <option value="En stock">En stock</option>
+          <option value="Sin stock">Sin stock</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Tipo</label>
+        <select id="tipo">
+          <option value="Hombre">Hombre</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Industrial">Industrial</option>
+        </select>
+      </div>
+      <div>
+        <label>Categoria</label>
+        <select id="categoria"></select>
+      </div>
+    </div>
+    <div>
+      <label>Stock por talla</label>
+      <input id="stock" placeholder="38:2,39:5,40:3" />
+      <div class="hint">Formato: talla:stock,talla:stock</div>
+    </div>
+    <div>
+      <label>URL imagen principal</label>
+      <input id="imageUrl" placeholder="https://..." />
+    </div>
+    <div>
+      <label>Alt text imagen principal</label>
+      <input id="altText" placeholder="Zapato charol negro" />
+    </div>
+
+    <div class="card">
+      <label>Caracteristica 1</label>
+      <input id="f1t" placeholder="CUMPLIMIENTO ISO" />
+      <textarea id="f1d" placeholder="Descripcion"></textarea>
+    </div>
+    <div class="card">
+      <label>Caracteristica 2</label>
+      <input id="f2t" placeholder="ANTIDESLIZANTE" />
+      <textarea id="f2d" placeholder="Descripcion"></textarea>
+    </div>
+    <div class="card">
+      <label>Caracteristica 3</label>
+      <input id="f3t" placeholder="MATERIAL" />
+      <textarea id="f3d" placeholder="Descripcion"></textarea>
+    </div>
+
+    <div class="card">
+      <label>Galeria opcional (URLs)</label>
+      <input id="g1u" placeholder="https://... (imagen 1)" />
+      <input id="g1a" placeholder="Alt imagen 1 (opcional)" />
+      <input id="g2u" placeholder="https://... (imagen 2)" />
+      <input id="g2a" placeholder="Alt imagen 2 (opcional)" />
+      <input id="g3u" placeholder="https://... (imagen 3)" />
+      <input id="g3a" placeholder="Alt imagen 3 (opcional)" />
+    </div>
+
+    <button id="submitBtn">Enviar al bot</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const tipoEl = document.getElementById("tipo");
+    const categoriaEl = document.getElementById("categoria");
+
+    function setCategoriaOptions(tipo) {
+      const options = (tipo === "Industrial") ? ["Seguridad"] : ["Formal", "Tennis", "Sport"];
+      categoriaEl.innerHTML = "";
+      options.forEach((opt) => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt;
+        categoriaEl.appendChild(o);
+      });
+    }
+    tipoEl.addEventListener("change", () => setCategoriaOptions(tipoEl.value));
+    setCategoriaOptions(tipoEl.value);
+
+    function val(id) { return (document.getElementById(id)?.value || "").trim(); }
+    function galleryItem(urlId, altId) {
+      const url = val(urlId);
+      const alt = val(altId);
+      if (!url) return null;
+      return { url, alt };
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const payload = {
+        source: "telegram-miniapp",
+        name: val("name"),
+        description: val("description"),
+        price: val("price"),
+        availability: val("availability"),
+        tipo: val("tipo"),
+        categoria: val("categoria"),
+        stock: val("stock"),
+        imageUrl: val("imageUrl"),
+        altText: val("altText"),
+        features: [
+          { title: val("f1t"), description: val("f1d") },
+          { title: val("f2t"), description: val("f2d") },
+          { title: val("f3t"), description: val("f3d") },
+        ],
+        images: [galleryItem("g1u", "g1a"), galleryItem("g2u", "g2a"), galleryItem("g3u", "g3a")].filter(Boolean),
+      };
+      tg.sendData(JSON.stringify(payload));
+      tg.close();
+    });
+  </script>
+</body>
+</html>
