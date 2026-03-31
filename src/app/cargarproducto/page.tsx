@@ -12,7 +12,9 @@ import { supabase } from "@/lib/supabase";
 import QuickCart from "@/components/layout/QuickCart";
 
 const EMPTY_FEATURE = { title: "", description: "" };
-const EMPTY_IMAGE = { url: "", alt: "" };
+/** Alt text fijo (campos ocultos en el formulario). */
+const AUTO_ALT_TEXT = "X";
+const EMPTY_IMAGE = { url: "", alt: AUTO_ALT_TEXT };
 const DEFAULT_SIZES = ["34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44"];
 
 export default function CargarProductoPage() {
@@ -41,7 +43,7 @@ export default function CargarProductoPage() {
     description: "",
     categoria: "",
     imageUrl: "",
-    altText: "",
+    altText: AUTO_ALT_TEXT,
     features: [
       { ...EMPTY_FEATURE, title: "CUMPLIMIENTO ISO" },
       { ...EMPTY_FEATURE, title: "ANTIDESLIZANTE" },
@@ -115,10 +117,10 @@ export default function CargarProductoPage() {
     });
   };
 
-  const handleImageChange = (index: number, field: "url" | "alt", value: string) => {
+  const handleImageUrlChange = (index: number, value: string) => {
     setForm((prev) => {
       const images = [...prev.images];
-      images[index] = { ...images[index], [field]: value };
+      images[index] = { ...images[index], url: value, alt: AUTO_ALT_TEXT };
       return { ...prev, images };
     });
   };
@@ -134,7 +136,9 @@ export default function CargarProductoPage() {
       ...form,
       slug: ensuredSlug,
       ref: ensuredRef,
+      altText: AUTO_ALT_TEXT,
       sizes,
+      images: form.images.map((img) => ({ ...img, alt: AUTO_ALT_TEXT })),
     };
 
     try {
@@ -184,10 +188,14 @@ export default function CargarProductoPage() {
         updatedImages[i] = {
           ...updatedImages[i],
           url: publicUrl,
+          alt: AUTO_ALT_TEXT,
         };
       }
 
-      payload = { ...payload, images: updatedImages };
+      payload = {
+        ...payload,
+        images: updatedImages.map((img) => ({ ...img, alt: AUTO_ALT_TEXT })),
+      };
     } catch (err) {
       setIsSubmitting(false);
       setUploadingImage(false);
@@ -220,7 +228,7 @@ export default function CargarProductoPage() {
       description: "",
       categoria: "",
       imageUrl: "",
-      altText: "",
+      altText: AUTO_ALT_TEXT,
     }));
   };
 
@@ -425,19 +433,6 @@ export default function CargarProductoPage() {
                     required={!imageFile}
                   />
                 </div>
-                <div>
-                  <label className="block font-label text-[10px] tracking-widest text-on-surface-variant mb-2">
-                    ALT TEXT
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full bg-transparent border-b border-outline-variant py-3 px-0 font-body text-lg focus:border-primary transition-all"
-                    value={form.altText}
-                    onChange={(e) => handleChange("altText", e.target.value)}
-                    placeholder="Oxford ejecutivo negro cuero pulido"
-                    required
-                  />
-                </div>
               </div>
             </section>
 
@@ -514,18 +509,9 @@ export default function CargarProductoPage() {
                       className="w-full bg-transparent border-b border-outline-variant py-2 px-0 font-body text-sm focus:border-primary transition-all"
                       value={image.url}
                       onChange={(e) =>
-                        handleImageChange(index, "url", e.target.value)
+                        handleImageUrlChange(index, e.target.value)
                       }
                       placeholder="https://..."
-                    />
-                    <input
-                      type="text"
-                      className="w-full bg-transparent border-b border-outline-variant py-2 px-0 font-body text-sm focus:border-primary transition-all"
-                      value={image.alt}
-                      onChange={(e) =>
-                        handleImageChange(index, "alt", e.target.value)
-                      }
-                      placeholder="Alt opcional"
                     />
                   </div>
                 ))}
