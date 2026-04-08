@@ -60,9 +60,9 @@ export const metadata: Metadata = {
     canonical: "https://viercocalzado.com",
   },
   icons: {
-    icon: "/logo1.png",
-    shortcut: "/logo1.png",
-    apple: "/logo1.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
     title: "Vierco | Calzado Empresarial de Élite",
