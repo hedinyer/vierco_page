@@ -7,6 +7,7 @@ import Hero from "@/components/layout/Hero";
 import FilterBar from "@/components/layout/FilterBar";
 import LineaFilterBar from "@/components/layout/LineaFilterBar";
 import Footer from "@/components/layout/Footer";
+import LocalSeoSection from "@/components/layout/LocalSeoSection";
 import ProductGrid from "@/components/ui/ProductGrid";
 import type { Product, ProductLinea, ProductTipo } from "@/lib/products";
 
@@ -89,6 +90,7 @@ export default function HomeClient({ products }: HomeClientProps) {
           />
         )}
         <ProductGrid products={gridProducts} />
+        <LocalSeoSection />
         <Footer />
       </main>
     </div>
