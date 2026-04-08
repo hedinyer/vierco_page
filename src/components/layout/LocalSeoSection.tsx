@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const cityLinks = [
+  { href: "/zapato-dotacion", label: "Calzado de dotacion por ciudad" },
   { href: "/zapato-dotacion/bucaramanga", label: "Zapato de dotacion en Bucaramanga" },
   { href: "/zapato-dotacion/bogota", label: "Zapato de dotacion en Bogota" },
   { href: "/zapato-dotacion/medellin", label: "Zapato de dotacion en Medellin" },
@@ -24,7 +25,7 @@ export default function LocalSeoSection() {
           Medellin y Barranquilla.
         </p>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {cityLinks.map((item) => (
             <Link
               key={item.href}

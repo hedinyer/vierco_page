@@ -7,6 +7,8 @@ type CityPageProps = {
   params: Promise<{ city: string }>;
 };
 
+export const revalidate = 86400;
+
 export function generateStaticParams() {
   return seoCities.map((city) => ({ city: city.slug }));
 }
@@ -52,6 +54,29 @@ export default async function CitySeoPage({ params }: CityPageProps) {
     notFound();
   }
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `Donde comprar calzado de dotacion en ${cityData.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `En Vierco puedes cotizar calzado de dotacion en ${cityData.name} para equipos empresariales con enfoque en comodidad, estilo y durabilidad.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Que tipo de zapatos de dotacion ofrece Vierco en ${cityData.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Ofrecemos referencias de calzado empresarial y corporativo para uso diario en ambientes profesionales, con materiales de alta calidad.`,
+        },
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-background text-on-surface px-6 py-16 md:px-12">
       <section className="mx-auto max-w-4xl space-y-6">
@@ -71,6 +96,16 @@ export default async function CitySeoPage({ params }: CityPageProps) {
           diseno elegante, comodidad para jornadas largas y materiales de alto
           desempeno para uso empresarial.
         </p>
+        <h2 className="pt-2 font-headline text-2xl md:text-3xl">
+          Calzado dotacion {cityData.name} para empresas
+        </h2>
+        <p className="text-base md:text-lg text-on-surface-variant">
+          Trabajamos soluciones de calzado para dotacion empresarial en{" "}
+          {cityData.name}, con lineas enfocadas en presentacion profesional,
+          confort y resistencia. Tambien atendemos busquedas relacionadas como
+          calzado dotacion {cityData.name.toLowerCase()} y zapato dotacion{" "}
+          {cityData.name.toLowerCase()}.
+        </p>
         <div className="pt-2">
           <Link
             href="/"
@@ -79,6 +114,10 @@ export default async function CitySeoPage({ params }: CityPageProps) {
             Ver todo el catalogo
           </Link>
         </div>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
       </section>
     </main>
   );

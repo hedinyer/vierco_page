@@ -4,7 +4,7 @@ dist/
 build/
 out/
 public/**/*.mp4
-public/**/*.png
+
 public/**/*.jpg
 public/**/*.jpeg
 public/**/*.webp
