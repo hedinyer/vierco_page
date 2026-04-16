@@ -5,7 +5,7 @@ const highlights = [
     label: "Construyendo historia 1982",
     icon: BadgeCheck,
     iconLabel: "3",
-    iconSubLabel: "anos",
+    iconSubLabel: "años",
   },
   {
     label: "Atencion a los detalles",
