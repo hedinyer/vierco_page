@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/lib/products";
+import { CATALOG_SECTION_ID } from "@/lib/catalog-section";
 import ProductCard from "./ProductCard";
 
 interface ProductGridProps {
@@ -28,9 +29,12 @@ export default function ProductGrid({ products }: ProductGridProps) {
   }, [productsKey, products]);
 
   return (
-    <section className="px-6 lg:px-24 py-16">
+    <section
+      id={CATALOG_SECTION_ID}
+      className="scroll-mt-6 px-4 py-10 sm:px-6 sm:py-14 lg:px-24 lg:py-16"
+    >
       <div
-        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-24 gap-x-12 transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+        className={`grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-8 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-24 transition-opacity duration-300 ease-out motion-reduce:transition-none ${
           isFading ? "opacity-0" : "opacity-100"
         }`}
       >

@@ -17,111 +17,93 @@ const HERO_TEXTS = [
   "Imagen Corporativa",
 ];
 
+function splitHeadline(text: string): { first: string; rest: string } {
+  const i = text.indexOf(" ");
+  if (i === -1) return { first: text, rest: "" };
+  return { first: text.slice(0, i), rest: text.slice(i + 1) };
+}
+
 export default function Hero() {
-  const [activeTextIndex, setActiveTextIndex] = useState(0);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setActiveTextIndex((prev) => (prev + 1) % HERO_TEXTS.length);
+      setTick((prev) => prev + 1);
     }, 2600);
 
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const columns = [0, 1, 2].map((columnIndex) =>
-    AMBIENT_IMAGES.filter((_, index) => index % 3 === columnIndex),
-  );
+  const textIndex = tick % HERO_TEXTS.length;
+  const imageIndex = tick % AMBIENT_IMAGES.length;
+  const currentImage = AMBIENT_IMAGES[imageIndex];
+  const headline = splitHeadline(HERO_TEXTS[textIndex]);
 
   return (
     <header className="relative px-4 sm:px-6 lg:px-24 py-16 sm:py-20 min-h-[360px] sm:min-h-[400px] overflow-hidden">
-      {/* Animated Pinterest-like image wall */}
+      {/* Una sola imagen a la vez, misma ventana que el hero */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute inset-0 grid grid-cols-3 gap-3 p-3 sm:gap-4 sm:p-4 opacity-70">
-          {columns.map((column, columnIndex) => {
-            const animatedColumn = [...column, ...column];
-            const columnDirection =
-              columnIndex === 1 ? "animate-column-down" : "animate-column-up";
-            const durationSeconds =
-              columnIndex === 0 ? 14 : columnIndex === 1 ? 18 : 16;
-
-            return (
-              <div key={columnIndex} className="relative h-full overflow-hidden">
-                <div
-                  className={`absolute left-0 right-0 top-0 ${columnDirection} space-y-3 sm:space-y-4`}
-                  style={{
-                    animationDuration: `${durationSeconds}s`,
-                    animationPlayState: "running",
-                  }}
-                >
-                  {animatedColumn.map((imagePath, imageIndex) => (
-                    <div
-                      key={`${imagePath}-${imageIndex}`}
-                      className="relative w-full"
-                    >
-                      <img
-                        src={encodeURI(imagePath)}
-                        alt=""
-                        className="block w-full h-auto rounded-xl"
-                        loading={imageIndex < 3 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div className="absolute inset-0 p-3 sm:p-4 lg:p-6 opacity-90">
+          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-white/40 shadow-sm ring-1 ring-black/[0.06] dark:bg-white/10">
+            <img
+              key={currentImage}
+              src={encodeURI(currentImage)}
+              alt=""
+              className="hero-single-image absolute inset-0 h-full w-full object-cover object-center"
+              loading={imageIndex === 0 ? "eager" : "lazy"}
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
 
       {/* Contenido secuencial centrado */}
       <div className="relative z-10 min-h-[360px] sm:min-h-[400px] flex items-center justify-center">
-        <div className="relative w-full h-32 sm:h-40 lg:h-44 flex items-center justify-center">
+        <div className="relative flex w-full min-h-[9rem] sm:min-h-[11rem] lg:min-h-[12rem] items-center justify-center px-2">
           <h1
-            key={HERO_TEXTS[activeTextIndex]}
-            className="hero-sequence-title text-center font-headline text-4xl sm:text-6xl lg:text-8xl leading-none text-black drop-shadow-md"
+            key={HERO_TEXTS[textIndex]}
+            className="hero-sequence-title text-center leading-[1.02]"
           >
-            {HERO_TEXTS[activeTextIndex]}
+            <span className="hero-banner-line1 block font-headline font-light uppercase tracking-[0.18em] text-white sm:tracking-[0.22em]">
+              {headline.first}
+            </span>
+            {headline.rest ? (
+              <span className="hero-banner-line2 font-body mt-1.5 block text-3xl font-bold uppercase tracking-[0.12em] text-[#f0c4bf] sm:mt-2 sm:text-5xl sm:tracking-[0.14em] lg:text-7xl lg:tracking-[0.16em]">
+                {headline.rest}
+              </span>
+            ) : null}
           </h1>
         </div>
       </div>
 
       <style jsx>{`
-        .animate-column-up,
-        .animate-column-down {
-          animation-timing-function: linear;
-          animation-iteration-count: infinite;
-          will-change: transform;
-        }
-
-        .animate-column-up {
-          animation-name: heroColumnUp;
-          animation-duration: 16s;
-        }
-
-        .animate-column-down {
-          animation-name: heroColumnDown;
-          animation-duration: 16s;
+        .hero-single-image {
+          animation: heroImageFade 0.55s ease-out;
         }
 
         .hero-sequence-title {
           animation: heroTextInOut 2.6s ease-in-out;
         }
 
-        @keyframes heroColumnUp {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
+        .hero-banner-line1 {
+          font-size: clamp(1.35rem, 4.5vw, 2.75rem);
+          text-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.85),
+            0 4px 28px rgba(0, 0, 0, 0.55);
         }
 
-        @keyframes heroColumnDown {
-          0% {
-            transform: translateY(-50%);
+        .hero-banner-line2 {
+          text-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.75),
+            0 3px 22px rgba(0, 0, 0, 0.45);
+        }
+
+        @keyframes heroImageFade {
+          from {
+            opacity: 0;
           }
-          100% {
-            transform: translateY(0);
+          to {
+            opacity: 1;
           }
         }
 

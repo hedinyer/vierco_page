@@ -31,7 +31,7 @@ export default function TopNavBar({
   };
 
   return (
-    <nav className="sticky top-[env(safe-area-inset-top)] z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20 px-4 py-6 sm:px-6 lg:px-12">
+    <nav className="sticky top-[env(safe-area-inset-top)] z-50 border-b border-white/10 bg-[#243d36] px-4 py-6 text-white sm:px-6 lg:px-12">
       <div className="relative flex items-center justify-between">
         <Link
           href="/"
@@ -45,7 +45,7 @@ export default function TopNavBar({
             alt="Vierco"
             width={115}
             height={40}
-            className="block h-10 w-[115px] object-contain"
+            className="block h-10 w-[115px] object-contain brightness-0 invert"
           />
         </Link>
         {onTipoChange && (
@@ -57,8 +57,8 @@ export default function TopNavBar({
               type="button"
               className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
                 selectedTipo === "Hombre"
-                  ? "text-secondary"
-                  : "text-on-surface-variant/80 hover:text-secondary"
+                  ? "text-white"
+                  : "text-white/55 hover:text-white/90"
               }`}
               onClick={() => {
                 if (selectedTipo === "Hombre") return;
@@ -67,15 +67,15 @@ export default function TopNavBar({
             >
               HOMBRE
               {selectedTipo === "Hombre" && (
-                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
               )}
             </button>
             <button
               type="button"
               className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
                 selectedTipo === "Mujer"
-                  ? "text-secondary"
-                  : "text-on-surface-variant/80 hover:text-secondary"
+                  ? "text-white"
+                  : "text-white/55 hover:text-white/90"
               }`}
               onClick={() => {
                 if (selectedTipo === "Mujer") return;
@@ -84,15 +84,15 @@ export default function TopNavBar({
             >
               MUJER
               {selectedTipo === "Mujer" && (
-                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
               )}
             </button>
             <button
               type="button"
               className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
                 selectedTipo === "Industrial"
-                  ? "text-secondary"
-                  : "text-on-surface-variant/80 hover:text-secondary"
+                  ? "text-white"
+                  : "text-white/55 hover:text-white/90"
               }`}
               onClick={() => {
                 if (selectedTipo === "Industrial") return;
@@ -101,7 +101,7 @@ export default function TopNavBar({
             >
               INDUSTRIAL
               {selectedTipo === "Industrial" && (
-                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-secondary" />
+                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
               )}
             </button>
           </div>
@@ -112,10 +112,10 @@ export default function TopNavBar({
             className="flex items-center gap-2 group"
             aria-label="Abrir carrito"
           >
-            <span className="font-label text-xs tracking-[0.2em] group-hover:text-secondary transition-colors">
+            <span className="font-label text-xs tracking-[0.2em] text-white/90 transition-colors group-hover:text-white">
               CARRITO ({cartCount})
             </span>
-            <ShoppingBag className="w-5 h-5 text-primary group-hover:text-secondary transition-colors" />
+            <ShoppingBag className="h-5 w-5 text-white/90 transition-colors group-hover:text-white" />
           </button>
         </div>
       </div>
@@ -123,13 +123,13 @@ export default function TopNavBar({
       {/* Mobile tipo switcher (prevents overlap with other content) */}
       {onTipoChange && (
         <div className="mt-5 md:hidden">
-          <div className="grid grid-cols-3 border border-outline-variant/30 bg-surface-container-lowest">
+          <div className="grid grid-cols-3 border border-white/15 bg-black/15">
             <button
               type="button"
               className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
                 selectedTipo === "Hombre"
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:text-primary"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white"
               }`}
               onClick={() => {
                 if (selectedTipo === "Hombre") return;
@@ -142,8 +142,8 @@ export default function TopNavBar({
               type="button"
               className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
                 selectedTipo === "Mujer"
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:text-primary"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white"
               }`}
               onClick={() => {
                 if (selectedTipo === "Mujer") return;
@@ -156,8 +156,8 @@ export default function TopNavBar({
               type="button"
               className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
                 selectedTipo === "Industrial"
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:text-primary"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white"
               }`}
               onClick={() => {
                 if (selectedTipo === "Industrial") return;

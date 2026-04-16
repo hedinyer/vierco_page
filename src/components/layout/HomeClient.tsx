@@ -6,18 +6,30 @@ import QuickCart from "@/components/layout/QuickCart";
 import Hero from "@/components/layout/Hero";
 import FilterBar from "@/components/layout/FilterBar";
 import LineaFilterBar from "@/components/layout/LineaFilterBar";
+import InstagramShowcase from "@/components/layout/InstagramShowcase";
 import Footer from "@/components/layout/Footer";
 import LocalSeoSection from "@/components/layout/LocalSeoSection";
 import ProductGrid from "@/components/ui/ProductGrid";
-import type { Product, ProductLinea, ProductTipo } from "@/lib/products";
+import {
+  tipoFromSearchParam,
+  type Product,
+  type ProductLinea,
+  type ProductTipo,
+} from "@/lib/products";
 
 interface HomeClientProps {
   products: Product[];
+  initialTipo?: string | null;
 }
 
-export default function HomeClient({ products }: HomeClientProps) {
+export default function HomeClient({
+  products,
+  initialTipo,
+}: HomeClientProps) {
   const [cartOpen, setCartOpen] = useState(false);
-  const [tipoFilter, setTipoFilter] = useState<ProductTipo>("Hombre");
+  const [tipoFilter, setTipoFilter] = useState<ProductTipo>(() =>
+    tipoFromSearchParam(initialTipo ?? undefined),
+  );
   const [serieFilter, setSerieFilter] = useState<string | null>(null);
   const [lineaFilter, setLineaFilter] = useState<ProductLinea | null>(null);
 
@@ -43,6 +55,13 @@ export default function HomeClient({ products }: HomeClientProps) {
       (p) => (p.category || "").trim().toUpperCase() === key
     );
   }, [visibleProducts, serieFilter, lineaFilter, isHombreMujer]);
+
+  const shouldShowGrid = !isHombreMujer || lineaFilter !== null;
+  const shouldShowInstagram = true;
+
+  useEffect(() => {
+    setTipoFilter(tipoFromSearchParam(initialTipo ?? undefined));
+  }, [initialTipo]);
 
   useEffect(() => {
     setSerieFilter(null);
@@ -89,7 +108,8 @@ export default function HomeClient({ products }: HomeClientProps) {
             onCategoryChange={setSerieFilter}
           />
         )}
-        <ProductGrid products={gridProducts} />
+        {shouldShowGrid ? <ProductGrid products={gridProducts} /> : null}
+        {shouldShowInstagram ? <InstagramShowcase /> : null}
         <LocalSeoSection />
         <Footer />
       </main>

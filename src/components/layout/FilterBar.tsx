@@ -60,9 +60,9 @@ export default function FilterBar({
   }, [activeIndex]);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-24 py-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6 border-b border-outline-variant/20">
+    <div className="flex flex-col gap-5 border-b border-outline-variant/20 px-4 py-6 sm:flex-row sm:items-end sm:justify-between sm:gap-6 sm:px-6 sm:py-8 lg:px-24">
       <div className="hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-        <div className="flex gap-10 flex-nowrap whitespace-nowrap">
+        <div className="flex flex-nowrap gap-7 whitespace-nowrap sm:gap-10">
         {filters.map((filter, i) => (
           <button
             key={filter.label}
@@ -70,7 +70,7 @@ export default function FilterBar({
             ref={(node) => {
               filterRefs.current[i] = node;
             }}
-            className={`shrink-0 font-label text-[10px] tracking-widest pb-1 transition-colors ${
+            className={`shrink-0 pb-1.5 pt-1 font-label text-[10px] tracking-widest transition-colors ${
               activeIndex === i
                 ? "border-b border-primary text-primary"
                 : "text-on-surface-variant hover:text-primary"

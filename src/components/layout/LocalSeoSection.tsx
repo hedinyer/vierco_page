@@ -1,40 +1,53 @@
-import Link from "next/link";
+import { BadgeCheck, Leaf, Ruler, ShieldCheck } from "lucide-react";
 
-const cityLinks = [
-  { href: "/zapato-dotacion", label: "Calzado de dotacion por ciudad" },
-  { href: "/zapato-dotacion/bucaramanga", label: "Zapato de dotacion en Bucaramanga" },
-  { href: "/zapato-dotacion/bogota", label: "Zapato de dotacion en Bogota" },
-  { href: "/zapato-dotacion/medellin", label: "Zapato de dotacion en Medellin" },
-  { href: "/zapato-dotacion/barranquilla", label: "Zapato de dotacion en Barranquilla" },
+const highlights = [
+  {
+    label: "Construyendo historia 1982",
+    icon: BadgeCheck,
+    iconLabel: "3",
+    iconSubLabel: "anos",
+  },
+  {
+    label: "Atencion a los detalles",
+    icon: ShieldCheck,
+  },
+  {
+    label: "Ciclo productivo responsable",
+    icon: Leaf,
+  },
+  {
+    label: "Manufactura Colombiana",
+    icon: Ruler,
+  },
 ];
 
 export default function LocalSeoSection() {
   return (
     <section className="px-6 py-14 sm:px-6 lg:px-24 border-t border-outline-variant/20 bg-surface-container-lowest/40">
       <div className="mx-auto max-w-6xl">
-        <p className="font-label text-[10px] tracking-[0.2em] uppercase text-secondary">
-          Cobertura nacional
-        </p>
-        <h2 className="mt-3 font-headline text-3xl md:text-4xl text-on-surface">
-          Zapatos de dotacion para empresas en Colombia
-        </h2>
-        <p className="mt-4 max-w-4xl text-sm md:text-base text-on-surface-variant leading-relaxed">
-          En Vierco desarrollamos calzado empresarial con enfoque en imagen corporativa,
-          comodidad y durabilidad para jornadas de trabajo exigentes. Atendemos
-          requerimientos de dotacion en ciudades clave como Bucaramanga, Bogota,
-          Medellin y Barranquilla.
-        </p>
-
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cityLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md border border-outline-variant/30 bg-background px-4 py-3 text-sm text-on-surface hover:border-secondary hover:text-secondary transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="grid grid-cols-2 gap-y-8 gap-x-6 md:grid-cols-4">
+          {highlights.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.label} className="flex flex-col items-center text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-outline-variant/30 bg-background">
+                  {item.iconLabel ? (
+                    <span className="font-headline leading-none text-on-surface">
+                      <span className="block text-3xl">{item.iconLabel}</span>
+                      <span className="block text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">
+                        {item.iconSubLabel}
+                      </span>
+                    </span>
+                  ) : (
+                    <Icon className="h-7 w-7 text-on-surface" strokeWidth={1.9} />
+                  )}
+                </div>
+                <p className="mt-4 font-body text-base font-semibold text-on-surface">
+                  {item.label}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

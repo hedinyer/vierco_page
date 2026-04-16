@@ -237,3 +237,21 @@ export function getProductByName(name: string): Product | undefined {
     PRODUCTS.find((p) => p.name.toLowerCase() === clean.toLowerCase())
   );
 }
+
+/** Pestaña del nav (Hombre / Mujer / Industrial) según el producto. */
+export function tipoFromProduct(product: Product): ProductTipo {
+  const t = (product.tipo ?? "").trim().toLowerCase();
+  if (t === "mujer") return "Mujer";
+  if (t === "industrial") return "Industrial";
+  return "Hombre";
+}
+
+/** Valor inicial del filtro en inicio desde `?tipo=`. */
+export function tipoFromSearchParam(raw: string | undefined | null): ProductTipo {
+  if (raw == null || raw === "") return "Hombre";
+  const t = String(raw).trim().toLowerCase();
+  if (t === "mujer") return "Mujer";
+  if (t === "industrial") return "Industrial";
+  if (t === "hombre") return "Hombre";
+  return "Hombre";
+}
