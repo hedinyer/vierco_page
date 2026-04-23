@@ -19,6 +19,7 @@ export default function TopNavBar({
   onTipoChange,
 }: TopNavBarProps) {
   const pathname = usePathname();
+  const isProductPage = pathname?.startsWith("/product/");
   const cartCount = useSelector((state: RootState) =>
     state.cart.items.reduce((sum, item) => sum + item.quantity, 0)
   );
@@ -28,6 +29,12 @@ export default function TopNavBar({
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  const handleTipoClick = (tipo: ProductTipo) => {
+    if (!onTipoChange) return;
+    if (!isProductPage && selectedTipo === tipo) return;
+    onTipoChange(tipo);
   };
 
   return (
@@ -60,10 +67,7 @@ export default function TopNavBar({
                   ? "text-white"
                   : "text-white/55 hover:text-white/90"
               }`}
-              onClick={() => {
-                if (selectedTipo === "Hombre") return;
-                onTipoChange("Hombre");
-              }}
+              onClick={() => handleTipoClick("Hombre")}
             >
               HOMBRE
               {selectedTipo === "Hombre" && (
@@ -77,30 +81,10 @@ export default function TopNavBar({
                   ? "text-white"
                   : "text-white/55 hover:text-white/90"
               }`}
-              onClick={() => {
-                if (selectedTipo === "Mujer") return;
-                onTipoChange("Mujer");
-              }}
+              onClick={() => handleTipoClick("Mujer")}
             >
               MUJER
               {selectedTipo === "Mujer" && (
-                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
-              )}
-            </button>
-            <button
-              type="button"
-              className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-                selectedTipo === "Industrial"
-                  ? "text-white"
-                  : "text-white/55 hover:text-white/90"
-              }`}
-              onClick={() => {
-                if (selectedTipo === "Industrial") return;
-                onTipoChange("Industrial");
-              }}
-            >
-              INDUSTRIAL
-              {selectedTipo === "Industrial" && (
                 <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
               )}
             </button>
@@ -123,7 +107,7 @@ export default function TopNavBar({
       {/* Mobile tipo switcher (prevents overlap with other content) */}
       {onTipoChange && (
         <div className="mt-5 md:hidden">
-          <div className="grid grid-cols-3 border border-white/15 bg-black/15">
+          <div className="grid grid-cols-2 border border-white/15 bg-black/15">
             <button
               type="button"
               className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
@@ -131,10 +115,7 @@ export default function TopNavBar({
                   ? "bg-white/20 text-white"
                   : "text-white/60 hover:text-white"
               }`}
-              onClick={() => {
-                if (selectedTipo === "Hombre") return;
-                onTipoChange("Hombre");
-              }}
+              onClick={() => handleTipoClick("Hombre")}
             >
               Hombre
             </button>
@@ -145,26 +126,9 @@ export default function TopNavBar({
                   ? "bg-white/20 text-white"
                   : "text-white/60 hover:text-white"
               }`}
-              onClick={() => {
-                if (selectedTipo === "Mujer") return;
-                onTipoChange("Mujer");
-              }}
+              onClick={() => handleTipoClick("Mujer")}
             >
               Mujer
-            </button>
-            <button
-              type="button"
-              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
-                selectedTipo === "Industrial"
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white"
-              }`}
-              onClick={() => {
-                if (selectedTipo === "Industrial") return;
-                onTipoChange("Industrial");
-              }}
-            >
-              Industrial
             </button>
           </div>
         </div>

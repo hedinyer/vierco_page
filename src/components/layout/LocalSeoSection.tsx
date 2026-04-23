@@ -2,7 +2,7 @@ import { BadgeCheck, Leaf, Ruler, ShieldCheck } from "lucide-react";
 
 const highlights = [
   {
-    label: "Construyendo historia 1982",
+    label: "Construyendo historia 2023",
     icon: BadgeCheck,
     iconLabel: "3",
     iconSubLabel: "años",

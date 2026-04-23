@@ -13,7 +13,6 @@ interface LineaFilterBarProps {
 const ITEMS: Array<{ label: string; value: ProductLinea }> = [
   { label: "FORMAL", value: "formal" },
   { label: "TENNIS", value: "tennis" },
-  { label: "SPORT", value: "sport" },
 ];
 
 function categoryKey(p: Product): string {
@@ -71,7 +70,7 @@ export default function LineaFilterBar({
   return (
     <div className="border-b border-outline-variant/20">
       <div className="mx-auto w-full max-w-[1200px] px-4 pb-5 pt-6 sm:px-6 sm:pb-6 sm:pt-8 lg:px-24">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
+        <div className="mx-auto grid w-full max-w-[860px] grid-cols-2 gap-2 sm:gap-3">
           {ITEMS.map((item) => {
             const selected = item.value === selectedLinea;
             const count = countFor(item.value);
@@ -103,11 +102,6 @@ export default function LineaFilterBar({
                     aria-hidden
                   />
                 )}
-
-                <div
-                  className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-t from-white via-white/75 to-transparent"
-                  aria-hidden
-                />
 
                 <div className="absolute bottom-0 right-0 p-2.5 text-right sm:p-2.5">
                   <span className="font-body text-[11px] font-bold uppercase tracking-[0.07em] text-primary sm:text-[11px]">

@@ -21,6 +21,12 @@ const instagramPosts = [
   },
 ];
 
+function withAutoplayMuted(embedUrl: string) {
+  const separator = embedUrl.includes("?") ? "&" : "?";
+  // Nota: Instagram puede ignorar estos parámetros en algunos casos, pero es lo más consistente desde el embed.
+  return `${embedUrl}${separator}autoplay=1&muted=1`;
+}
+
 export default function InstagramShowcase() {
   return (
     <section className="px-6 py-6 lg:px-24">
@@ -42,7 +48,7 @@ export default function InstagramShowcase() {
               className="h-[430px] overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-high sm:h-[460px] lg:h-[520px]"
             >
               <iframe
-                src={post.embedUrl}
+                src={withAutoplayMuted(post.embedUrl)}
                 title="Reel de Instagram Vierco"
                 className="h-[520px] w-full sm:h-[560px] lg:h-[620px]"
                 loading="lazy"

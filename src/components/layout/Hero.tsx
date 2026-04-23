@@ -25,6 +25,7 @@ function splitHeadline(text: string): { first: string; rest: string } {
 
 export default function Hero() {
   const [tick, setTick] = useState(0);
+  const [prevImage, setPrevImage] = useState<string | null>(null);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -39,19 +40,43 @@ export default function Hero() {
   const currentImage = AMBIENT_IMAGES[imageIndex];
   const headline = splitHeadline(HERO_TEXTS[textIndex]);
 
+  useEffect(() => {
+    // Mantener la imagen anterior visible mientras entra la nueva (evita “flash” de fondo).
+    // En el primer tick usamos la misma imagen para no mostrar la última por debajo.
+    if (tick === 0) {
+      setPrevImage(currentImage);
+      return;
+    }
+
+    const prevIndex =
+      ((tick - 1) % AMBIENT_IMAGES.length + AMBIENT_IMAGES.length) %
+      AMBIENT_IMAGES.length;
+    setPrevImage(AMBIENT_IMAGES[prevIndex]);
+  }, [currentImage, tick]);
+
   return (
     <header className="relative px-4 sm:px-6 lg:px-24 py-16 sm:py-20 min-h-[360px] sm:min-h-[400px] overflow-hidden">
       {/* Una sola imagen a la vez, misma ventana que el hero */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden>
         <div className="absolute inset-0 p-3 sm:p-4 lg:p-6 opacity-90">
-          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-white/40 shadow-sm ring-1 ring-black/[0.06] dark:bg-white/10">
+          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-black/10 shadow-sm ring-1 ring-black/[0.06] dark:bg-black/20">
+            {prevImage ? (
+              <img
+                src={encodeURI(prevImage)}
+                alt=""
+                className="hero-image hero-image--prev absolute inset-0 h-full w-full object-cover object-center"
+                loading="eager"
+                decoding="async"
+                draggable={false}
+              />
+            ) : null}
             <img
-              key={currentImage}
               src={encodeURI(currentImage)}
               alt=""
-              className="hero-single-image absolute inset-0 h-full w-full object-cover object-center"
+              className="hero-image hero-image--current absolute inset-0 h-full w-full object-cover object-center"
               loading={imageIndex === 0 ? "eager" : "lazy"}
               decoding="async"
+              draggable={false}
             />
           </div>
         </div>
@@ -77,8 +102,19 @@ export default function Hero() {
       </div>
 
       <style jsx>{`
-        .hero-single-image {
-          animation: heroImageFade 0.55s ease-out;
+        .hero-image {
+          will-change: opacity;
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+
+        .hero-image--prev {
+          opacity: 1;
+        }
+
+        .hero-image--current {
+          opacity: 0;
+          animation: heroImageFade 0.55s ease-out forwards;
         }
 
         .hero-sequence-title {
