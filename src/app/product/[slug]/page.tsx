@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductBySlugFromDb } from "@/lib/products-db";
+import { getProductBySlugFromDb, getProductsFromDb } from "@/lib/products-db";
 import ProductPageClient from "@/components/product/ProductPageClient";
 
 export const revalidate = 1800;
