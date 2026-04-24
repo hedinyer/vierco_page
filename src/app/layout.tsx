@@ -7,12 +7,14 @@ import WhatsAppButton from "@/components/layout/WhatsAppButton";
 const newsreader = Newsreader({
   subsets: ["latin"],
   variable: "--font-headline",
+  display: "swap",
   weight: ["200", "300", "400", "500", "600", "700", "800"],
   style: ["normal", "italic"],
 });
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-body",
+  display: "swap",
   weight: ["300", "400", "500", "600", "700"],
 });
 

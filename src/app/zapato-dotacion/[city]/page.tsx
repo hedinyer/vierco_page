@@ -42,6 +42,20 @@ export async function generateMetadata({
       url,
       type: "website",
       locale: "es_CO",
+      images: [
+        {
+          url: "https://viercocalzado.com/logo1.png",
+          width: 512,
+          height: 512,
+          alt: `Calzado de dotacion en ${cityData.name} - Vierco`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | Vierco`,
+      description,
+      images: ["https://viercocalzado.com/logo1.png"],
     },
   };
 }

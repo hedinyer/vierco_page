@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface ProductCardProps {
   slug: string;
@@ -10,7 +11,6 @@ interface ProductCardProps {
   image: string;
   alt: string;
   gallery?: string[];
-  description?: string;
 }
 
 export default function ProductCard({
@@ -20,7 +20,6 @@ export default function ProductCard({
   image,
   alt,
   gallery,
-  description,
 }: ProductCardProps) {
   const carouselImages = useMemo(() => {
     const fromGallery = (gallery ?? []).filter(Boolean);
@@ -47,10 +46,13 @@ export default function ProductCard({
         aria-label={`Ver ${name}`}
       >
         <div className="absolute inset-0 z-10">
-          <img
+          <Image
             alt={alt}
             className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105 group-active:scale-105"
             src={carouselImages[imageIndex] ?? image}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
           />
         </div>
       </Link>

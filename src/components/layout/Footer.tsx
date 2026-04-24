@@ -100,6 +100,18 @@ export default function Footer() {
         <p className="mt-12 font-label text-[10px] tracking-widest text-on-surface/70">
           © 2026 Vierco.
         </p>
+        <p className="mt-4 text-center font-label text-[10px] tracking-widest text-on-surface/70">
+          Hecho por{" "}
+          <a
+            href="https://artiificial.art"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4 hover:text-on-surface"
+          >
+            art_ificial
+          </a>
+          .
+        </p>
       </div>
     </footer>
   );

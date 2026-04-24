@@ -1,12 +1,38 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { seoCities } from "@/lib/seo-cities";
 
-export const metadata = {
+const canonicalUrl = "https://viercocalzado.com/zapato-dotacion";
+
+export const metadata: Metadata = {
   title: "Calzado de Dotacion por Ciudad",
   description:
     "Encuentra calzado de dotacion y calzado empresarial de Vierco por ciudad en Colombia: Bucaramanga, Bogota, Medellin y Barranquilla.",
   alternates: {
-    canonical: "https://viercocalzado.com/zapato-dotacion",
+    canonical: canonicalUrl,
+  },
+  openGraph: {
+    title: "Calzado de Dotacion por Ciudad | Vierco",
+    description:
+      "Encuentra calzado de dotacion y calzado empresarial de Vierco por ciudad en Colombia.",
+    url: canonicalUrl,
+    type: "website",
+    locale: "es_CO",
+    images: [
+      {
+        url: "https://viercocalzado.com/logo1.png",
+        width: 512,
+        height: 512,
+        alt: "Logo Vierco",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Calzado de Dotacion por Ciudad | Vierco",
+    description:
+      "Encuentra calzado de dotacion y calzado empresarial de Vierco por ciudad en Colombia.",
+    images: ["https://viercocalzado.com/logo1.png"],
   },
 };
 

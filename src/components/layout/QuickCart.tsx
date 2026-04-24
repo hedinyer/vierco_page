@@ -2,6 +2,7 @@
 
 import { ShoppingBag, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "@/store";
 import { incrementQuantity, decrementQuantity } from "@/store";
@@ -91,11 +92,13 @@ export default function QuickCart({ isOpen, onClose }: QuickCartProps) {
                     className="flex items-center gap-4 border-b border-outline-variant/20 pb-3"
                   >
                     {item.image && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
                         className="w-14 h-14 object-cover bg-surface-container-highest"
+                        width={56}
+                        height={56}
+                        sizes="56px"
                       />
                     )}
                     <div className="flex-1">

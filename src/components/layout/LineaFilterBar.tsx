@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { CATALOG_SECTION_ID } from "@/lib/catalog-section";
 import type { Product, ProductLinea } from "@/lib/products";
 
@@ -91,10 +92,13 @@ export default function LineaFilterBar({
                 } ${!hasProducts ? "opacity-75" : ""}`}
               >
                 {showCover ? (
-                  <img
+                  <Image
                     src={hero!.image}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    fill
+                    sizes="(max-width: 768px) 48vw, 360px"
+                    loading="lazy"
                   />
                 ) : (
                   <div

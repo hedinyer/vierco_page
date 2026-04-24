@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const AMBIENT_IMAGES = [
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_6812.jpg",
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7088.jpg",
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7162.jpg",
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7163.jpg",
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7176.jpg",
-  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7194.jpg",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_6812.webp",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7088.webp",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7162.webp",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7163.webp",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7176.webp",
+  "/banner/FOTOS VARIAS (AMBIENTACIÓN DE LA PAGINA)/IMG_7194.webp",
 ];
 
 const HERO_TEXTS = [
@@ -25,7 +26,6 @@ function splitHeadline(text: string): { first: string; rest: string } {
 
 export default function Hero() {
   const [tick, setTick] = useState(0);
-  const [prevImage, setPrevImage] = useState<string | null>(null);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -38,21 +38,11 @@ export default function Hero() {
   const textIndex = tick % HERO_TEXTS.length;
   const imageIndex = tick % AMBIENT_IMAGES.length;
   const currentImage = AMBIENT_IMAGES[imageIndex];
+  const prevIndex =
+    ((tick - 1) % AMBIENT_IMAGES.length + AMBIENT_IMAGES.length) %
+    AMBIENT_IMAGES.length;
+  const prevImage = tick === 0 ? currentImage : AMBIENT_IMAGES[prevIndex];
   const headline = splitHeadline(HERO_TEXTS[textIndex]);
-
-  useEffect(() => {
-    // Mantener la imagen anterior visible mientras entra la nueva (evita “flash” de fondo).
-    // En el primer tick usamos la misma imagen para no mostrar la última por debajo.
-    if (tick === 0) {
-      setPrevImage(currentImage);
-      return;
-    }
-
-    const prevIndex =
-      ((tick - 1) % AMBIENT_IMAGES.length + AMBIENT_IMAGES.length) %
-      AMBIENT_IMAGES.length;
-    setPrevImage(AMBIENT_IMAGES[prevIndex]);
-  }, [currentImage, tick]);
 
   return (
     <header className="relative px-4 sm:px-6 lg:px-24 py-16 sm:py-20 min-h-[360px] sm:min-h-[400px] overflow-hidden">
@@ -61,21 +51,23 @@ export default function Hero() {
         <div className="absolute inset-0 p-3 sm:p-4 lg:p-6 opacity-90">
           <div className="relative h-full min-h-0 w-full overflow-hidden rounded-2xl bg-black/10 shadow-sm ring-1 ring-black/[0.06] dark:bg-black/20">
             {prevImage ? (
-              <img
+              <Image
                 src={encodeURI(prevImage)}
                 alt=""
                 className="hero-image hero-image--prev absolute inset-0 h-full w-full object-cover object-center"
-                loading="eager"
-                decoding="async"
+                fill
+                sizes="100vw"
+                priority={tick === 0}
                 draggable={false}
               />
             ) : null}
-            <img
+            <Image
               src={encodeURI(currentImage)}
               alt=""
               className="hero-image hero-image--current absolute inset-0 h-full w-full object-cover object-center"
-              loading={imageIndex === 0 ? "eager" : "lazy"}
-              decoding="async"
+              fill
+              sizes="100vw"
+              priority={imageIndex === 0}
               draggable={false}
             />
           </div>

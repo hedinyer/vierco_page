@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import type { ProductTipo } from "@/lib/products";
@@ -46,13 +47,13 @@ export default function TopNavBar({
           aria-label="Ir al inicio"
           onClick={handleLogoClick}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo_f.png"
+          <Image
+            src="/logo_f.webp"
             alt="Vierco"
             width={115}
             height={40}
             className="block h-10 w-[115px] object-contain brightness-0 invert"
+            priority
           />
         </Link>
         {onTipoChange && (

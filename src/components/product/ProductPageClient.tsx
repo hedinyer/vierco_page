@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, MouseEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useDispatch } from "react-redux";
 import TopNavBar from "@/components/layout/TopNavBar";
 import QuickCart from "@/components/layout/QuickCart";
@@ -74,10 +75,6 @@ export default function ProductPageClient({ product }: { product: Product }) {
   const [mobileSlide, setMobileSlide] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  useEffect(() => {
-    setMobileSlide(0);
-  }, [product.slug]);
-
   const mobileGoPrev = () => {
     if (galleryImages.length < 2) return;
     setMobileSlide(
@@ -104,6 +101,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
           <div className="relative md:hidden">
             <div className="overflow-hidden">
               <div
+                key={product.slug}
                 className="flex touch-manipulation transition-transform duration-300 ease-out motion-reduce:transition-none"
                 style={{ transform: `translateX(-${mobileSlide * 100}%)` }}
                 onTouchStart={(e) => {
@@ -125,7 +123,7 @@ export default function ProductPageClient({ product }: { product: Product }) {
                     key={`m-${img}-${i}`}
                     className="aspect-[4/5] max-h-[68vh] w-full min-w-full shrink-0 overflow-hidden bg-surface-container-highest"
                   >
-                    <img
+                    <Image
                       src={img}
                       alt={
                         i === 0
@@ -133,6 +131,10 @@ export default function ProductPageClient({ product }: { product: Product }) {
                           : `${product.alt} — vista ${i + 1}`
                       }
                       className="h-full w-full object-cover object-center py-0 my-0"
+                      width={1200}
+                      height={1500}
+                      sizes="100vw"
+                      priority={i === 0}
                       draggable={false}
                     />
                   </div>
@@ -189,10 +191,14 @@ export default function ProductPageClient({ product }: { product: Product }) {
                 key={`d-${img}-${i}`}
                 className="aspect-[4/5] w-full overflow-hidden bg-surface-container-highest"
               >
-                <img
+                <Image
                   src={img}
                   alt={i === 0 ? product.alt : `${product.alt} — vista ${i + 1}`}
                   className="h-full w-full object-cover py-0 my-0"
+                  width={900}
+                  height={1125}
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  priority={i === 0}
                 />
               </div>
             ))}

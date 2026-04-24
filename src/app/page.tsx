@@ -1,8 +1,16 @@
 import HomeClient from "@/components/layout/HomeClient";
 import { getProductsFromDb } from "@/lib/products-db";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 900;
+
+export const metadata = {
+  title: "Calzado Empresarial y de Dotacion en Colombia",
+  description:
+    "Catalogo Vierco de calzado empresarial y zapatos de dotacion para equipos corporativos en Colombia.",
+  alternates: {
+    canonical: "https://viercocalzado.com",
+  },
+};
 
 type HomeSearchParams = Promise<{ tipo?: string | string[] }> | undefined;
 

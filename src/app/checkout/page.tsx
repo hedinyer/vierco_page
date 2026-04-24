@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import type { RootState } from "@/store";
 import { setCartItems } from "@/store";
 import { createWompiCheckout } from "@/app/actions/wompi";
@@ -623,11 +624,13 @@ export default function CheckoutPage() {
                         className="flex gap-4 border-b border-outline-variant/20 pb-4"
                       >
                         {item.image && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={item.image}
                             alt={item.name}
                             className="w-16 h-16 object-cover bg-surface-container-highest"
+                            width={64}
+                            height={64}
+                            sizes="64px"
                           />
                         )}
                         <div className="flex-1">
