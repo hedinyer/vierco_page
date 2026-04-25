@@ -1,12 +1,8 @@
 "use client";
 
-/**
- * Botón flotante de WhatsApp en la esquina inferior derecha.
- * Edita WHATSAPP_NUMBER con tu número (código país + número sin + ni espacios).
- * Ej: 5215512345678 para México.
- */
-const WHATSAPP_NUMBER = "5215512345678";
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+import { VIERCO_WHATSAPP_NUMBER } from "@/lib/contact";
+
+const WHATSAPP_URL = `https://wa.me/${VIERCO_WHATSAPP_NUMBER}`;
 
 export default function WhatsAppButton() {
   return (

@@ -21,6 +21,7 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   const pathname = usePathname();
   const isProductPage = pathname?.startsWith("/product/");
+  const isQuotePage = pathname?.startsWith("/cotizaciones");
   const cartCount = useSelector((state: RootState) =>
     state.cart.items.reduce((sum, item) => sum + item.quantity, 0)
   );
@@ -56,39 +57,69 @@ export default function TopNavBar({
             priority
           />
         </Link>
-        {onTipoChange && (
+        {(onTipoChange || isQuotePage) && (
           <div
             className="hidden md:flex items-end gap-10 absolute left-1/2 -translate-x-1/2"
             style={{ marginTop: -3, marginBottom: -3 }}
           >
-            <button
-              type="button"
+            {onTipoChange ? (
+              <>
+                <button
+                  type="button"
+                  className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
+                    selectedTipo === "Hombre"
+                      ? "text-white"
+                      : "text-white/55 hover:text-white/90"
+                  }`}
+                  onClick={() => handleTipoClick("Hombre")}
+                >
+                  HOMBRE
+                  {selectedTipo === "Hombre" && (
+                    <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
+                    selectedTipo === "Mujer"
+                      ? "text-white"
+                      : "text-white/55 hover:text-white/90"
+                  }`}
+                  onClick={() => handleTipoClick("Mujer")}
+                >
+                  MUJER
+                  {selectedTipo === "Mujer" && (
+                    <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/?tipo=hombre"
+                  className="relative pb-1 font-label text-xs tracking-[0.2em] text-white/55 transition-colors hover:text-white/90"
+                >
+                  HOMBRE
+                </Link>
+                <Link
+                  href="/?tipo=mujer"
+                  className="relative pb-1 font-label text-xs tracking-[0.2em] text-white/55 transition-colors hover:text-white/90"
+                >
+                  MUJER
+                </Link>
+              </>
+            )}
+            <Link
+              href="/cotizaciones"
               className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-                selectedTipo === "Hombre"
-                  ? "text-white"
-                  : "text-white/55 hover:text-white/90"
+                isQuotePage ? "text-white" : "text-white/55 hover:text-white/90"
               }`}
-              onClick={() => handleTipoClick("Hombre")}
             >
-              HOMBRE
-              {selectedTipo === "Hombre" && (
+              COTIZACIONES
+              {isQuotePage && (
                 <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
               )}
-            </button>
-            <button
-              type="button"
-              className={`relative pb-1 font-label text-xs tracking-[0.2em] transition-colors ${
-                selectedTipo === "Mujer"
-                  ? "text-white"
-                  : "text-white/55 hover:text-white/90"
-              }`}
-              onClick={() => handleTipoClick("Mujer")}
-            >
-              MUJER
-              {selectedTipo === "Mujer" && (
-                <span className="pointer-events-none absolute inset-x-0 -bottom-0.5 h-[2px] bg-[#c9d5c8]" />
-              )}
-            </button>
+            </Link>
           </div>
         )}
         <div className="flex items-center gap-6">
@@ -106,31 +137,58 @@ export default function TopNavBar({
       </div>
 
       {/* Mobile tipo switcher (prevents overlap with other content) */}
-      {onTipoChange && (
+      {(onTipoChange || isQuotePage) && (
         <div className="mt-5 md:hidden">
-          <div className="grid grid-cols-2 border border-white/15 bg-black/15">
-            <button
-              type="button"
-              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
-                selectedTipo === "Hombre"
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white"
+          <div className="grid grid-cols-3 border border-white/15 bg-black/15">
+            {onTipoChange ? (
+              <>
+                <button
+                  type="button"
+                  className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                    selectedTipo === "Hombre"
+                      ? "bg-white/20 text-white"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  onClick={() => handleTipoClick("Hombre")}
+                >
+                  Hombre
+                </button>
+                <button
+                  type="button"
+                  className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                    selectedTipo === "Mujer"
+                      ? "bg-white/20 text-white"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  onClick={() => handleTipoClick("Mujer")}
+                >
+                  Mujer
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/?tipo=hombre"
+                  className="py-3 text-center font-label text-[10px] tracking-[0.22em] uppercase text-white/60 transition-colors hover:text-white"
+                >
+                  Hombre
+                </Link>
+                <Link
+                  href="/?tipo=mujer"
+                  className="py-3 text-center font-label text-[10px] tracking-[0.22em] uppercase text-white/60 transition-colors hover:text-white"
+                >
+                  Mujer
+                </Link>
+              </>
+            )}
+            <Link
+              href="/cotizaciones"
+              className={`py-3 text-center font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
+                isQuotePage ? "bg-white/20 text-white" : "text-white/60 hover:text-white"
               }`}
-              onClick={() => handleTipoClick("Hombre")}
             >
-              Hombre
-            </button>
-            <button
-              type="button"
-              className={`py-3 font-label text-[10px] tracking-[0.22em] uppercase transition-colors ${
-                selectedTipo === "Mujer"
-                  ? "bg-white/20 text-white"
-                  : "text-white/60 hover:text-white"
-              }`}
-              onClick={() => handleTipoClick("Mujer")}
-            >
-              Mujer
-            </button>
+              Cotizar
+            </Link>
           </div>
         </div>
       )}
