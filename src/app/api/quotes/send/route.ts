@@ -17,8 +17,6 @@ interface QuotePayload {
     email: string;
   };
   items: QuoteLinePayload[];
-  pdfBase64: string;
-  fileName: string;
 }
 
 const DESTINATIONS = ["viercosolutions.sas@gmail.com", "hedinyer.perucho@gmail.com"];
@@ -35,15 +33,11 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json()) as QuotePayload;
-    const { client, items, pdfBase64, fileName } = body ?? {};
+    const { client, items } = body ?? {};
 
     if (!client?.name || !client?.phone || !client?.email || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Datos incompletos para enviar la cotización." }, { status: 400 });
     }
-    if (!pdfBase64 || !fileName) {
-      return NextResponse.json({ error: "Documento PDF inválido." }, { status: 400 });
-    }
-
     const resend = new Resend(apiKey);
 
     const linesHtml = items
@@ -78,7 +72,7 @@ export async function POST(req: Request) {
         <ol style="margin:0 0 12px 16px;padding:0;">
           ${linesHtml}
         </ol>
-        <p style="margin:12px 0 0 0;">El PDF de la cotización se adjunta en este correo.</p>
+        <p style="margin:12px 0 0 0;">Mensaje enviado automáticamente desde viercocalzado.com.</p>
       </div>
     `;
 
@@ -90,9 +84,7 @@ Teléfono/WhatsApp: ${client.phone}
 Correo: ${client.email}
 
 Productos solicitados:
-${linesText}
-
-Se adjunta el PDF de la cotización.`;
+${linesText}`;
 
     const sendResult = await resend.emails.send({
       from: fromEmail,
@@ -100,12 +92,6 @@ Se adjunta el PDF de la cotización.`;
       subject,
       html,
       text,
-      attachments: [
-        {
-          filename: fileName,
-          content: pdfBase64,
-        },
-      ],
     });
 
     if ((sendResult as { error?: { message?: string } }).error) {

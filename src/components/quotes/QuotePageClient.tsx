@@ -264,20 +264,14 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
       );
 
       const fileName = `cotizacion-vierco-${Date.now()}.pdf`;
-      const fileBase64 = doc.output("datauristring").split(",")[1] ?? "";
+      const fileBlob = doc.output("blob");
+      const fileUrl = URL.createObjectURL(fileBlob);
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(fileUrl);
 
-      const linesText = summary
-        .map(
-          (item, index) =>
-            `${index + 1}) ${item.tipo} - Ref ${item.ref} - ${item.name} - Talla ${item.size} - Cant ${item.quantity}`
-        )
-        .join("\n");
-
-      const message = `Hola Vierco, deseo solicitar esta cotización.\n\nCliente: ${
-        clientData.name
-      }\nEmpresa: ${clientData.company.trim() || "No aplica"}\nTeléfono: ${
-        clientData.phone
-      }\nCorreo: ${clientData.email}\n\nReferencias:\n${linesText}\n\nAdjunto el PDF generado en la web.`;
       const response = await fetch("/api/quotes/send", {
         method: "POST",
         headers: {
@@ -293,9 +287,6 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
             quantity: item.quantity,
             slug: item.slug,
           })),
-          fileName,
-          pdfBase64: fileBase64,
-          message,
         }),
       });
 
