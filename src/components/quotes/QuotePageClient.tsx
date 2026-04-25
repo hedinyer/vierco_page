@@ -261,7 +261,8 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
                               alt={selectedProduct.alt || selectedProduct.name}
                               width={80}
                               height={80}
-                              unoptimized
+                              sizes="80px"
+                              quality={60}
                               className="h-20 w-20 shrink-0 object-cover"
                             />
                             <span className="truncate">
@@ -292,7 +293,9 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
                                 alt={product.alt || product.name}
                                 width={80}
                                 height={80}
-                                unoptimized
+                                sizes="80px"
+                                quality={60}
+                                loading="lazy"
                                 className="h-20 w-20 shrink-0 object-cover"
                               />
                               <span className="min-w-0 truncate">
