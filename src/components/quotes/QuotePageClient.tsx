@@ -55,29 +55,6 @@ function normalizeTipo(value: string | undefined): QuoteTipo | null {
   return null;
 }
 
-function formatQuoteDate() {
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(new Date());
-}
-
-async function imageUrlToDataUrl(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
 export default function QuotePageClient({ products }: QuotePageClientProps) {
   const [lines, setLines] = useState<QuoteLine[]>([defaultLine()]);
   const [openReferenceId, setOpenReferenceId] = useState<string | null>(null);
@@ -174,104 +151,6 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
     setSubmitting(true);
     setError(null);
     try {
-      const { jsPDF } = await import("jspdf");
-      const doc = new jsPDF({ unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 14;
-      let y = margin;
-
-      const summaryWithImages = await Promise.all(
-        summary.map(async (item) => ({
-          ...item,
-          imageDataUrl: await imageUrlToDataUrl(item.image),
-        }))
-      );
-
-      doc.setFillColor(36, 61, 54);
-      doc.rect(0, 0, pageWidth, 34, "F");
-
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text("COTIZACION VIERCO", margin, 14);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text("Solicitud empresarial de calzado", margin, 20);
-      doc.text(`Fecha: ${formatQuoteDate()}`, margin, 26);
-
-      y = 42;
-      doc.setTextColor(28, 30, 30);
-      doc.setDrawColor(205, 214, 205);
-      doc.setFillColor(247, 249, 247);
-      doc.roundedRect(margin, y, pageWidth - margin * 2, 38, 1.5, 1.5, "FD");
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("Datos del cliente", margin + 4, y + 7);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(`Nombre: ${clientData.name}`, margin + 4, y + 14);
-      doc.text(`Empresa: ${clientData.company.trim() || "No aplica"}`, margin + 4, y + 20);
-      doc.text(`Telefono / WhatsApp: ${clientData.phone}`, margin + 4, y + 26);
-      doc.text(`Correo: ${clientData.email}`, margin + 4, y + 32);
-
-      y += 48;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text("Productos solicitados", margin, y);
-      y += 6;
-
-      summaryWithImages.forEach((item, index) => {
-        const itemHeight = 34;
-        if (y + itemHeight > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-
-        doc.setDrawColor(220, 225, 220);
-        doc.setFillColor(252, 252, 252);
-        doc.roundedRect(margin, y, pageWidth - margin * 2, itemHeight, 1.2, 1.2, "FD");
-
-        if (item.imageDataUrl) {
-          try {
-            const format = item.imageDataUrl.includes("image/png") ? "PNG" : "JPEG";
-            doc.addImage(item.imageDataUrl, format, margin + 2, y + 2, 30, 30);
-          } catch {
-            // Si la imagen no es compatible, mantenemos el documento sin romper.
-          }
-        }
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10.5);
-        doc.text(`${index + 1}. ${item.name}`, margin + 36, y + 8);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.5);
-        doc.text(`Referencia: ${item.ref}`, margin + 36, y + 14);
-        doc.text(`Linea: ${item.tipo}`, margin + 36, y + 19.5);
-        doc.text(`Talla: ${item.size}`, margin + 36, y + 25);
-        doc.text(`Cantidad: ${item.quantity}`, margin + 36, y + 30.5);
-
-        y += itemHeight + 4;
-      });
-
-      doc.setFontSize(8.5);
-      doc.setTextColor(110, 110, 110);
-      doc.text(
-        "Documento generado automaticamente desde viercocalzado.com",
-        margin,
-        pageHeight - 8
-      );
-
-      const fileName = `cotizacion-vierco-${Date.now()}.pdf`;
-      const fileBlob = doc.output("blob");
-      const fileUrl = URL.createObjectURL(fileBlob);
-      const link = document.createElement("a");
-      link.href = fileUrl;
-      link.download = fileName;
-      link.click();
-      URL.revokeObjectURL(fileUrl);
-
       const response = await fetch("/api/quotes/send", {
         method: "POST",
         headers: {
@@ -285,7 +164,7 @@ export default function QuotePageClient({ products }: QuotePageClientProps) {
             name: item.name,
             size: item.size,
             quantity: item.quantity,
-            slug: item.slug,
+            image: item.image,
           })),
         }),
       });

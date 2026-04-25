@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { Resend } from "resend";
 
 interface QuoteLinePayload {
@@ -7,6 +8,7 @@ interface QuoteLinePayload {
   name: string;
   size: string;
   quantity: number;
+  image?: string;
 }
 
 interface QuotePayload {
@@ -20,6 +22,113 @@ interface QuotePayload {
 }
 
 const DESTINATIONS = ["viercosolutions.sas@gmail.com", "hedinyer.perucho@gmail.com"];
+
+async function buildQuotePdfBase64(client: QuotePayload["client"], items: QuoteLinePayload[]) {
+  const pdf = await PDFDocument.create();
+  let page = pdf.addPage([595, 842]);
+  const { width, height } = page.getSize();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  const margin = 40;
+  let y = height - margin;
+
+  const ensureSpace = (required: number) => {
+    if (y - required < margin) {
+      page = pdf.addPage([595, 842]);
+      y = page.getSize().height - margin;
+    }
+  };
+
+  page.drawRectangle({
+    x: 0,
+    y: height - 88,
+    width,
+    height: 88,
+    color: rgb(0.14, 0.24, 0.21),
+  });
+  page.drawText("COTIZACION VIERCO", {
+    x: margin,
+    y: height - 44,
+    size: 20,
+    font: fontBold,
+    color: rgb(1, 1, 1),
+  });
+  page.drawText("Solicitud empresarial de calzado", {
+    x: margin,
+    y: height - 62,
+    size: 11,
+    font,
+    color: rgb(0.95, 0.95, 0.95),
+  });
+
+  y = height - 120;
+  page.drawText("Datos del cliente", { x: margin, y, size: 12, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
+  y -= 20;
+  page.drawText(`Nombre: ${client.name}`, { x: margin, y, size: 10, font });
+  y -= 14;
+  page.drawText(`Empresa: ${client.company?.trim() || "No aplica"}`, { x: margin, y, size: 10, font });
+  y -= 14;
+  page.drawText(`Telefono / WhatsApp: ${client.phone}`, { x: margin, y, size: 10, font });
+  y -= 14;
+  page.drawText(`Correo: ${client.email}`, { x: margin, y, size: 10, font });
+  y -= 24;
+
+  page.drawText("Productos solicitados", { x: margin, y, size: 12, font: fontBold });
+  y -= 16;
+
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i];
+    const rowHeight = 94;
+    ensureSpace(rowHeight + 10);
+
+    page.drawRectangle({
+      x: margin,
+      y: y - rowHeight + 6,
+      width: width - margin * 2,
+      height: rowHeight,
+      borderColor: rgb(0.85, 0.88, 0.85),
+      borderWidth: 1,
+      color: rgb(0.985, 0.985, 0.985),
+    });
+
+    if (item.image) {
+      try {
+        const response = await fetch(item.image);
+        if (response.ok) {
+          const contentType = response.headers.get("content-type") || "";
+          const imageBytes = await response.arrayBuffer();
+          let embedded;
+          if (contentType.includes("png")) {
+            embedded = await pdf.embedPng(imageBytes);
+          } else {
+            embedded = await pdf.embedJpg(imageBytes);
+          }
+          page.drawImage(embedded, {
+            x: margin + 8,
+            y: y - 78,
+            width: 64,
+            height: 64,
+          });
+        }
+      } catch {
+        // Si falla imagen, seguimos con el PDF sin interrumpir.
+      }
+    }
+
+    const textX = margin + 84;
+    page.drawText(`${i + 1}. ${item.name}`, { x: textX, y: y - 18, size: 11, font: fontBold });
+    page.drawText(`Referencia: ${item.ref}`, { x: textX, y: y - 34, size: 10, font });
+    page.drawText(`Linea: ${item.tipo}`, { x: textX, y: y - 48, size: 10, font });
+    page.drawText(`Talla: ${item.size}`, { x: textX, y: y - 62, size: 10, font });
+    page.drawText(`Cantidad: ${item.quantity}`, { x: textX, y: y - 76, size: 10, font });
+
+    y -= rowHeight + 10;
+  }
+
+  const bytes = await pdf.save();
+  return Buffer.from(bytes).toString("base64");
+}
 
 export async function POST(req: Request) {
   try {
@@ -39,6 +148,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Datos incompletos para enviar la cotización." }, { status: 400 });
     }
     const resend = new Resend(apiKey);
+    const fileName = `cotizacion-vierco-${Date.now()}.pdf`;
+    const pdfBase64 = await buildQuotePdfBase64(client, items);
 
     const linesHtml = items
       .map(
@@ -72,7 +183,7 @@ export async function POST(req: Request) {
         <ol style="margin:0 0 12px 16px;padding:0;">
           ${linesHtml}
         </ol>
-        <p style="margin:12px 0 0 0;">Mensaje enviado automáticamente desde viercocalzado.com.</p>
+        <p style="margin:12px 0 0 0;">El PDF de la cotización se adjunta en este correo.</p>
       </div>
     `;
 
@@ -84,7 +195,9 @@ Teléfono/WhatsApp: ${client.phone}
 Correo: ${client.email}
 
 Productos solicitados:
-${linesText}`;
+${linesText}
+
+Se adjunta el PDF de la cotización.`;
 
     const sendResult = await resend.emails.send({
       from: fromEmail,
@@ -92,6 +205,12 @@ ${linesText}`;
       subject,
       html,
       text,
+      attachments: [
+        {
+          filename: fileName,
+          content: pdfBase64,
+        },
+      ],
     });
 
     if ((sendResult as { error?: { message?: string } }).error) {
